@@ -1,101 +1,169 @@
 ---
-// Five days of the demo plant's schedule on eight work units, drawn at build time.
+// Three days of the demo plant's schedule, drawn at build time. Blocks are coloured by product
+// family and labelled when there is room; runs of short orders on one unit are merged into one
+// block so the chart stays readable.
 import type { Lang } from "../../i18n/ui.ts";
-import { demoPlant, schedule } from "../../lib/schedule.ts";
+import { demoPlant, schedule, type Bar } from "../../lib/schedule.ts";
 
 interface Props {
   lang: Lang;
   compact?: boolean;
 }
 const { lang, compact = false } = Astro.props;
+const en = lang === "en";
 
-const UNITS = ["EQ-01", "EQ-04", "EQ-05", "EQ-06", "EQ-08", "EQ-09", "EQ-12", "EQ-15"];
+const UNITS = compact ? ["EQ-01", "EQ-05", "EQ-07", "EQ-08"] : ["EQ-01", "EQ-04", "EQ-05", "EQ-07", "EQ-08", "EQ-09", "EQ-15"];
 const FR_NAMES: Record<string, string> = {
   "EQ-01": "Tréfileuse de fil machine",
   "EQ-04": "Toronneuse tubulaire 19 fils",
   "EQ-05": "Toronneuse rigide 61 fils",
-  "EQ-06": "Câbleuse en faisceau 1",
+  "EQ-07": "Câbleuse en faisceau 2",
   "EQ-08": "Ligne d'extrusion 60 mm",
   "EQ-09": "Ligne d'extrusion 90 mm",
-  "EQ-12": "Assembleuse (drum twister)",
   "EQ-15": "Ligne de gainage 120 mm",
+};
+const FAMILIES = ["power", "armoured", "building-wire", "cord"] as const;
+type Family = (typeof FAMILIES)[number];
+const FAMILY_LABEL: Record<Family, [string, string]> = {
+  power: ["Power cable", "Câble d'énergie"],
+  armoured: ["Armoured cable", "Câble armé"],
+  "building-wire": ["Building wire", "Fil d'installation"],
+  cord: ["Flexible cord", "Câble souple"],
 };
 
 const plant = demoPlant();
-const HOURS = 120;
-const bars = schedule().filter((b) => UNITS.includes(b.equipment_id) && b.start < HOURS);
-const units = UNITS.map((id) => plant.equipment.find((e) => e.equipment_id === id)!);
+const HOURS = 72;
+const productOf = new Map(plant.orders.map((o) => [o.order_id, plant.products.find((p) => p.product_id === o.product_id)!]));
 
-const left = compact ? 0 : 200;
-const width = compact ? 480 : 960;
-const chartW = width - left - 8;
-const rowH = compact ? 34 : 32;
-const barH = compact ? 20 : 18;
-const top = compact ? 6 : 34;
-const height = top + units.length * rowH + 8;
+type Block = { unit: string; start: number; end: number; family: Family | "mixed"; late: boolean; held: boolean; id: string; title: string; count: number };
+
+// Merge runs of short, back-to-back orders into one block.
+const SHORT = 1.5;
+const blocks: Block[] = [];
+for (const unit of UNITS) {
+  const bars = schedule()
+    .filter((b) => b.equipment_id === unit && b.start < HOURS)
+    .sort((a, b) => a.start - b.start);
+  let run: Bar[] = [];
+  const flush = () => {
+    if (run.length === 0) return;
+    if (run.length === 1) {
+      blocks.push(blockOf(run[0]));
+      run = [];
+      return;
+    }
+    const fams = new Set(run.map((b) => productOf.get(b.order_id)!.family as Family));
+    blocks.push({
+      unit,
+      start: run[0].start,
+      end: run[run.length - 1].end,
+      family: fams.size === 1 ? [...fams][0] : "mixed",
+      late: run.some((b) => b.late),
+      held: false,
+      id: en ? `${run.length} small orders` : `${run.length} petits ordres`,
+      title: run.map((b) => b.label).join("\n"),
+      count: run.length,
+    });
+    run = [];
+  };
+  for (const b of bars) {
+    const short = b.end - b.start < SHORT && !b.held;
+    const touching = run.length > 0 && b.start - run[run.length - 1].end < 0.3;
+    if (!short || !touching) flush();
+    if (short) run.push(b);
+    else blocks.push(blockOf(b));
+  }
+  flush();
+}
+
+function blockOf(b: Bar): Block {
+  const p = productOf.get(b.order_id)!;
+  return { unit: b.equipment_id, start: b.start, end: b.end, family: p.family as Family, late: b.late, held: b.held, id: b.order_id, title: b.label, count: 1 };
+}
+const shortName = (orderId: string) =>
+  productOf.get(orderId)!.designation.replace(" 0.6/1 kV", "").replace(" mm²", "").replace("Cu/XLPE/SWA/PVC", "SWA").replace("/XLPE/PVC", "");
+
+const left = compact ? 0 : 210;
+const width = compact ? 560 : 1000;
+const chartW = width - left - 4;
+const rowH = compact ? 40 : 44;
+const barH = compact ? 28 : 30;
+const top = compact ? 4 : 40;
+const height = top + UNITS.length * rowH + 4;
 const x = (h: number) => left + (Math.min(Math.max(h, 0), HOURS) / HOURS) * chartW;
 
 const start = new Date(`${plant.meta.start}T00:00:00Z`);
 const days = Array.from({ length: HOURS / 24 }, (_, i) => {
   const d = new Date(start);
   d.setUTCDate(d.getUTCDate() + i);
-  return d.toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR", { weekday: "short", day: "numeric", timeZone: "UTC" });
+  return d.toLocaleDateString(en ? "en-GB" : "fr-FR", { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" });
 });
-const t =
-  lang === "en"
-    ? { title: "Five-day schedule on the demo plant", onTime: "On time", late: "Ends after its due date", held: "Held" }
-    : { title: "Planning sur cinq jours de l'usine de démonstration", onTime: "Dans les délais", late: "Finit après sa date due", held: "Bloqué" };
+const t = en
+  ? { title: "Three-day schedule on the demo plant", late: "Ends after its due date", held: "Held", mixed: "Several small orders", shift: "Shifts of 8 h" }
+  : { title: "Planning sur trois jours de l'usine de démonstration", late: "Finit après sa date due", held: "Bloqué", mixed: "Plusieurs petits ordres", shift: "Postes de 8 h" };
+const hatch = compact ? "hatch-c" : "hatch";
 ---
 
 <figure class:list={["gantt", { compact }]}>
   <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t.title}>
     <defs>
-      <pattern id={compact ? "hatch-c" : "hatch"} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="6" height="6" class="held-bg"></rect>
-        <line x1="0" y1="0" x2="0" y2="6" class="held-line" stroke-width="3"></line>
+      <pattern id={hatch} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="7" height="7" class="held-bg"></rect>
+        <line x1="0" y1="0" x2="0" y2="7" class="held-line" stroke-width="3"></line>
       </pattern>
     </defs>
     {
-      days.map((label, i) => (
-        <g>
-          <line x1={x(i * 24)} x2={x(i * 24)} y1={top - (compact ? 4 : 10)} y2={height - 6} class="grid" />
-          {!compact && (
-            <text x={x(i * 24) + 6} y={top - 14} class="day">
-              {label}
-            </text>
-          )}
-        </g>
+      UNITS.map((_, i) => (
+        <rect x={left} y={top + i * rowH} width={chartW} height={rowH} class:list={["band", { odd: i % 2 === 1 }]} />
       ))
     }
     {
-      units.map((u, i) => (
-        <g>
-          {!compact && (
-            <text x={0} y={top + i * rowH + rowH / 2 + 5} class="unit">
-              {lang === "en" ? u.name : FR_NAMES[u.equipment_id] ?? u.name}
-            </text>
-          )}
-          <line x1={left} x2={width - 8} y1={top + (i + 1) * rowH} y2={top + (i + 1) * rowH} class="row" />
-        </g>
+      Array.from({ length: HOURS / 8 + 1 }, (_, i) => i * 8).map((h) => (
+        <line x1={x(h)} x2={x(h)} y1={top - (h % 24 === 0 && !compact ? 30 : 0)} y2={height - 4} class:list={[h % 24 === 0 ? "day-line" : "shift-line"]} />
       ))
     }
     {
-      bars.map((b) => {
-        const row = UNITS.indexOf(b.equipment_id);
-        const x0 = x(b.start);
-        const w = Math.max(x(b.end) - x0 - 1.5, 2);
+      !compact &&
+        days.map((label, i) => (
+          <text x={x(i * 24) + 8} y={top - 12} class="day">
+            {label}
+          </text>
+        ))
+    }
+    {
+      !compact &&
+        UNITS.map((u, i) => (
+          <text x={0} y={top + i * rowH + rowH / 2 + 5} class="unit">
+            {en ? plant.equipment.find((e) => e.equipment_id === u)!.name : FR_NAMES[u]}
+          </text>
+        ))
+    }
+    {
+      blocks.map((b) => {
+        const row = UNITS.indexOf(b.unit);
+        const x0 = x(b.start) + 1;
+        const w = Math.max(x(b.end) - x0 - 2, 3);
+        const y = top + row * rowH + (rowH - barH) / 2;
+        const label = b.count > 1 ? b.id : w > 150 ? `${b.id} · ${shortName(b.id)}` : b.id;
+        const showLabel = !compact && w >= (b.count > 1 ? 100 : 62);
         return (
-          <rect
-            x={x0}
-            y={top + row * rowH + (rowH - barH) / 2}
-            width={w}
-            height={barH}
-            rx="3"
-            class:list={["bar", { late: b.late }]}
-            fill={b.held ? `url(#${compact ? "hatch-c" : "hatch"})` : undefined}
-          >
-            <title>{b.label}</title>
-          </rect>
+          <g>
+            <title>{b.title}</title>
+            <rect
+              x={x0}
+              y={y}
+              width={w}
+              height={barH}
+              rx="5"
+              class:list={["blk", b.held ? "held" : b.family, { late: b.late }]}
+              fill={b.held ? `url(#${hatch})` : undefined}
+            />
+            {showLabel && (
+              <text x={x0 + 9} y={y + barH / 2 + 4.5} class:list={["blk-label", b.held ? "on-light" : b.family]}>
+                {label}
+              </text>
+            )}
+          </g>
         );
       })
     }
@@ -103,18 +171,16 @@ const t =
   {
     !compact && (
       <figcaption>
-        <span class="key">
-          <i class="sw on" />
-          {t.onTime}
-        </span>
-        <span class="key">
-          <i class="sw late" />
-          {t.late}
-        </span>
-        <span class="key">
-          <i class="sw held" />
-          {t.held}
-        </span>
+        {FAMILIES.map((f) => (
+          <span class="key">
+            <i class:list={["sw", f]} />
+            {FAMILY_LABEL[f][en ? 0 : 1]}
+          </span>
+        ))}
+        <span class="key"><i class="sw mixed" />{t.mixed}</span>
+        <span class="key"><i class="sw late" />{t.late}</span>
+        <span class="key"><i class="sw held" />{t.held}</span>
+        <span class="key"><i class="sw shift" />{t.shift}</span>
       </figcaption>
     )
   }
@@ -123,6 +189,22 @@ const t =
 <style>
   .gantt {
     margin: 0;
+    --f-power: #0f2a44;
+    --f-armoured: #2f5f8f;
+    --f-building-wire: #7fa7cf;
+    --f-cord: #b9c6d4;
+    --f-mixed: #dfe5ec;
+    --f-on-dark: #ffffff;
+    --f-on-light: #0f2a44;
+  }
+  :global(:root[data-theme="dark"]) .gantt {
+    --f-power: #a9cdf0;
+    --f-armoured: #6b9bcb;
+    --f-building-wire: #3b628b;
+    --f-cord: #2c4a69;
+    --f-mixed: #22384f;
+    --f-on-dark: #0b1724;
+    --f-on-light: #e6eef6;
   }
   svg {
     width: 100%;
@@ -130,41 +212,59 @@ const t =
     display: block;
     font-family: var(--f-body);
   }
-  .grid {
+  .band {
+    fill: transparent;
+  }
+  .band.odd {
+    fill: color-mix(in srgb, var(--bg-alt) 70%, transparent);
+  }
+  .day-line {
+    stroke: var(--rule);
+    stroke-width: 1.5;
+  }
+  .shift-line {
     stroke: var(--rule);
     stroke-width: 1;
-  }
-  .row {
-    stroke: var(--rule);
-    stroke-width: 0.6;
-    stroke-dasharray: 2 3;
+    stroke-dasharray: 3 4;
   }
   .day {
-    font-size: 13px;
-    fill: var(--muted);
-    font-weight: 500;
+    font-size: 14px;
+    fill: var(--ink);
+    font-weight: 600;
   }
   .unit {
-    font-size: 13px;
+    font-size: 14px;
     fill: var(--text);
   }
-  .bar {
-    fill: var(--ink);
+  .blk.power { fill: var(--f-power); }
+  .blk.armoured { fill: var(--f-armoured); }
+  .blk.building-wire { fill: var(--f-building-wire); }
+  .blk.cord { fill: var(--f-cord); }
+  .blk.mixed { fill: var(--f-mixed); stroke: var(--f-building-wire); stroke-width: 1; stroke-dasharray: 3 2; }
+  .blk.late {
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-dasharray: none;
   }
-  .bar.late {
-    fill: var(--accent);
+  .held-bg { fill: var(--bg-alt); }
+  .held-line { stroke: var(--muted); }
+  .blk-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    pointer-events: none;
   }
-  .held-bg {
-    fill: var(--bg-alt);
-  }
-  .held-line {
-    stroke: var(--muted);
-  }
+  .blk-label.power,
+  .blk-label.armoured { fill: var(--f-on-dark); }
+  .blk-label.building-wire,
+  .blk-label.cord,
+  .blk-label.mixed,
+  .blk-label.on-light { fill: var(--f-on-light); }
+
   figcaption {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 20px;
-    margin-top: 12px;
+    gap: 8px 20px;
+    margin-top: 14px;
     font-size: 14px;
     color: var(--muted);
   }
@@ -174,26 +274,25 @@ const t =
     gap: 8px;
   }
   .sw {
-    width: 14px;
-    height: 10px;
-    border-radius: 2px;
+    width: 16px;
+    height: 11px;
+    border-radius: 3px;
     display: inline-block;
   }
-  .sw.on {
-    background: var(--ink);
-  }
-  .sw.late {
-    background: var(--accent);
-  }
-  .sw.held {
-    background: repeating-linear-gradient(45deg, var(--muted) 0 2px, var(--bg-alt) 2px 5px);
-  }
+  .sw.power { background: var(--f-power); }
+  .sw.armoured { background: var(--f-armoured); }
+  .sw.building-wire { background: var(--f-building-wire); }
+  .sw.cord { background: var(--f-cord); }
+  .sw.mixed { background: var(--f-mixed); outline: 1px dashed var(--f-building-wire); }
+  .sw.late { background: transparent; outline: 3px solid var(--accent); outline-offset: -3px; }
+  .sw.held { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, var(--bg-alt) 2px 5px); }
+  .sw.shift { width: 2px; height: 14px; border-radius: 0; background: repeating-linear-gradient(var(--muted) 0 3px, transparent 3px 6px); }
   @media (max-width: 640px) {
     .gantt:not(.compact) {
       overflow-x: auto;
     }
     .gantt:not(.compact) svg {
-      min-width: 640px;
+      min-width: 720px;
     }
   }
 </style>

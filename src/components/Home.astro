@@ -4,6 +4,7 @@ import { copy, CV_HREF, EMAIL, LINKEDIN, type Lang } from "../i18n/ui.ts";
 import { projects } from "../content/projects.ts";
 import Figure from "./Figure.astro";
 import Gantt from "./figures/Gantt.astro";
+import OzoneDiagram from "./figures/OzoneDiagram.astro";
 
 interface Props {
   lang: Lang;
@@ -35,11 +36,11 @@ const ICONS = {
   </div>
   <div class="hero-visual" aria-hidden="true">
     <div class="card big">
-      <p class="card-title"><span class="dot"></span>{lang === "en" ? "Demo plant · five-day schedule" : "Usine de démonstration · planning sur cinq jours"}</p>
+      <p class="card-title"><span class="dot"></span>{lang === "en" ? "Demo plant · three-day schedule" : "Usine de démonstration · planning sur trois jours"}</p>
       <Gantt lang={lang} compact />
     </div>
     <div class="card photo">
-      <img src="/img/ozone/unit-corridor.jpg" alt="" width="857" height="1100" />
+      <OzoneDiagram lang={lang} compact />
     </div>
   </div>
 </section>
@@ -95,7 +96,7 @@ const ICONS = {
         work.map((p) => (
           <a class="card-link" href={url(p.slug)}>
             <article class="pcard">
-              <div class:list={["cover", { photo: !!p.cover }]}>
+              <div class:list={["cover", { photo: !!p.cover, portrait: p.coverFigure === "ozone-diagram" }]}>
                 {p.cover ? (
                   <img src={p.cover.src} alt={p.cover.alt} loading="lazy" />
                 ) : (
@@ -214,7 +215,7 @@ const ICONS = {
     padding: 0 0 72px 0;
   }
   .card.big {
-    width: 88%;
+    width: 76%;
   }
   .card {
     background: var(--surface);
@@ -242,17 +243,15 @@ const ICONS = {
   }
   .card.photo {
     position: absolute;
-    width: 36%;
+    width: 34%;
     right: -8px;
     bottom: 0;
     padding: 6px;
     overflow: hidden;
   }
-  .card.photo img {
-    border-radius: 9px;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    width: 100%;
+  .card.photo {
+    padding: 14px 10px 6px;
+    background: var(--surface);
   }
 
   .stats {
@@ -377,6 +376,17 @@ const ICONS = {
   }
   .cover.photo {
     padding: 0;
+  }
+  .cover.portrait {
+    padding: 14px;
+  }
+  .cover.portrait > :global(*) {
+    width: auto;
+    height: 100%;
+  }
+  .cover.portrait :global(svg) {
+    height: 100%;
+    width: auto;
   }
   .cover.photo img {
     width: 100%;

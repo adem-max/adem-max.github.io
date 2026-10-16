@@ -3,6 +3,7 @@ import type { Lang } from "../i18n/ui.ts";
 import type { Figure } from "../content/projects.ts";
 import Gantt from "./figures/Gantt.astro";
 import Coverage from "./figures/Coverage.astro";
+import OzoneDiagram from "./figures/OzoneDiagram.astro";
 import OzonePhotos from "./figures/OzonePhotos.astro";
 import OzoneResults from "./figures/OzoneResults.astro";
 import DzcodShots from "./figures/DzcodShots.astro";
@@ -17,6 +18,7 @@ const { name, lang, compact = false } = Astro.props;
 
 {name === "gantt" && <Gantt lang={lang} compact={compact} />}
 {name === "coverage" && <Coverage lang={lang} compact={compact} />}
+{name === "ozone-diagram" && <OzoneDiagram lang={lang} compact={compact} />}
 {name === "ozone-photos" && <OzonePhotos lang={lang} />}
 {name === "ozone-results" && <OzoneResults lang={lang} />}
 {name === "dzcod-shots" && <DzcodShots lang={lang} compact={compact} />}

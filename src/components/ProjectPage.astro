@@ -58,12 +58,12 @@ const demoFigures = new Set(["gantt", "coverage"]);
                   ))}
                 </ul>
               )}
-              {s.figure && (
+              {(Array.isArray(s.figure) ? s.figure : s.figure ? [s.figure] : []).map((f) => (
                 <div class="figure">
-                  <Figure name={s.figure} lang={lang} />
-                  {demoFigures.has(s.figure) && <p class="demo-note">{t.project.demo}</p>}
+                  <Figure name={f} lang={lang} />
+                  {demoFigures.has(f) && <p class="demo-note">{t.project.demo}</p>}
                 </div>
-              )}
+              ))}
             </section>
           ))
         }

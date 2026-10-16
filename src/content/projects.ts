@@ -3,13 +3,13 @@
 
 import type { Lang } from "../i18n/ui.ts";
 
-export type Figure = "ozone-photos" | "ozone-results" | "gantt" | "coverage" | "dzcod-shots";
+export type Figure = "ozone-diagram" | "ozone-photos" | "ozone-results" | "gantt" | "coverage" | "dzcod-shots";
 
 export type Section = {
   heading: string;
   body?: string[];
   list?: string[];
-  figure?: Figure;
+  figure?: Figure | Figure[];
 };
 
 export type Project = {
@@ -45,7 +45,7 @@ const en: Project[] = [
       ["When", "2023 – 2025, defended 23 June 2025"],
       ["Built with", "Cold-plasma ozone generator, Venturi injector, touchless sensing, microcontroller control"],
     ],
-    cover: { src: "/img/ozone/unit-corridor.jpg", alt: "The hand-wash unit, a white cabinet with a steel basin and an automatic tap, in a corridor" },
+    coverFigure: "ozone-diagram",
     sections: [
       {
         heading: "The problem",
@@ -60,7 +60,7 @@ const en: Project[] = [
           "A hand-wash unit that makes ozone from the surrounding air with a cold-plasma (dielectric barrier discharge) generator and dissolves it into tap water as it flows, through a Venturi injector. There is no tank and nothing to refill.",
           "An infrared sensor in the tap starts the whole system when hands come close and stops it the moment they leave, so no water or power is wasted between users.",
         ],
-        figure: "ozone-photos",
+        figure: ["ozone-diagram", "ozone-photos"],
       },
       {
         heading: "My part",
@@ -263,7 +263,7 @@ const fr: Project[] = [
       ["Quand", "2023 – 2025, soutenu le 23 juin 2025"],
       ["Matériel", "Générateur d'ozone à plasma froid, injecteur Venturi, détection sans contact, commande par microcontrôleur"],
     ],
-    cover: { src: "/img/ozone/unit-corridor.jpg", alt: "Le lave-mains, un meuble blanc avec une vasque en inox et un robinet automatique, dans un couloir" },
+    coverFigure: "ozone-diagram",
     sections: [
       {
         heading: "Le problème",
@@ -278,7 +278,7 @@ const fr: Project[] = [
           "Un lave-mains qui produit de l'ozone à partir de l'air ambiant avec un générateur à plasma froid (décharge à barrière diélectrique) et le dissout dans l'eau du robinet pendant qu'elle coule, grâce à un injecteur Venturi. Pas de réservoir, rien à recharger.",
           "Un capteur infrarouge dans le robinet démarre tout le système quand les mains approchent et l'arrête dès qu'elles s'éloignent : ni eau ni énergie perdues entre deux utilisateurs.",
         ],
-        figure: "ozone-photos",
+        figure: ["ozone-diagram", "ozone-photos"],
       },
       {
         heading: "Ma part",
