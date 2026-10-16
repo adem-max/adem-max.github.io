@@ -1,5 +1,6 @@
-// All page text, in English and French. Keys mirror the home page sections.
-// Employer rule (PORTFOLIO_PLAN.md §2): the employer is only ever "a cable manufacturer".
+// Page text for the home page and the frame around every page, in English and French.
+// Case studies live in src/content/projects.ts.
+// Employer rule (DEMO_DATA_MODEL.md): the employer is only ever "a cable manufacturer".
 
 export const languages = { en: "English", fr: "Français" } as const;
 export type Lang = keyof typeof languages;
@@ -7,22 +8,25 @@ export type Lang = keyof typeof languages;
 export const EMAIL = "adembenlecheb1@gmail.com";
 export const LINKEDIN = "https://www.linkedin.com/in/adem-benlechheb-283476218";
 export const GITHUB = "https://github.com/adem-max";
+/** Only an English CV exists; both languages link to it. */
+export const CV_HREF = "/cv/adem-benlechheb-cv-en.pdf";
 
-type Link = { label: string; href: string };
-type Track = { id: string; title: string; body: string; links: Link[] };
-type Project = { id: string; title: string; tags: string[]; body: string; status: string };
+type Link = { label: string; slug: string };
+type Track = { id: "field" | "software" | "planning"; title: string; body: string; links: Link[] };
 type Job = { when: string; role: string; where: string; body: string };
 
 export type Copy = {
   meta: { title: string; description: string };
-  nav: { tracks: string; work: string; experience: string; hire: string; contact: string };
-  hero: { eyebrow: string; title: string; lede: string; cv: string; cvHref: string; hire: string };
-  tracks: { heading: string; items: Track[] };
-  work: { heading: string; note: string; items: Project[] };
-  experience: { heading: string; items: Job[] };
-  hire: { heading: string; lede: string; items: string[]; cta: string };
+  nav: { work: string; experience: string; hire: string; contact: string; theme: string };
+  hero: { eyebrow: string; title: string; lede: string; cv: string; hire: string };
+  stats: [string, string][];
+  tracks: { eyebrow: string; heading: string; items: Track[] };
+  work: { eyebrow: string; heading: string; note: string; read: string };
+  experience: { eyebrow: string; heading: string; items: Job[] };
+  hire: { eyebrow: string; heading: string; lede: string; items: [string, string][]; cta: string };
   contact: { heading: string; lede: string; email: string };
-  footer: { demo: string };
+  project: { back: string; next: string; demo: string; facts: string };
+  footer: { role: string; demo: string };
 };
 
 export const copy: Record<Lang, Copy> = {
@@ -32,28 +36,31 @@ export const copy: Record<Lang, Copy> = {
       description:
         "Electrical engineer working on power plants, production floors and the software that runs them. Field engineering, software and production planning.",
     },
-    nav: { tracks: "What I do", work: "Work", experience: "Experience", hire: "Work with me", contact: "Contact" },
+    nav: { work: "Work", experience: "Experience", hire: "Work with me", contact: "Contact", theme: "Switch light or dark theme" },
     hero: {
       eyebrow: "Electrical engineer · Algiers, Algeria",
       title: "Power plants, production floors, and the software that runs them.",
       lede:
-        "MSc in electrical engineering, top of my class. Fieldwork on gas turbines and the grid. Planning tools in daily use at a cable manufacturer.",
+        "I'm an electrical engineer with fieldwork on gas turbines and the grid. I build the tools a production plant runs on, and I'm open to field, software and planning roles.",
       cv: "Download CV",
-      cvHref: "/cv/adem-benlechheb-cv-en.pdf",
       hire: "Work with me",
     },
+    stats: [
+      ["MSc", "Electrical engineering, top of my class"],
+      ["Daily", "My scheduling tool plans every section of a cable plant"],
+      ["99%", "Bacteria cut in a lab trial of my team's ozone prototype"],
+      ["3", "Languages: Arabic, English, French"],
+    ],
     tracks: {
-      heading: "What I do",
+      eyebrow: "What I do",
+      heading: "Three ways I can help",
       items: [
         {
           id: "field",
           title: "Field engineering",
           body:
             "Hands-on with power generation and plant equipment: gas-turbine maintenance rounds, grid fault diagnosis, and a high-voltage ozone prototype built and tested in the lab.",
-          links: [
-            { label: "Ozone device", href: "#work-ozone" },
-            { label: "Experience", href: "#experience" },
-          ],
+          links: [{ label: "Ozone device", slug: "ozone-device" }],
         },
         {
           id: "software",
@@ -61,8 +68,8 @@ export const copy: Record<Lang, Copy> = {
           body:
             "Tested desktop apps and ERP extensions that replace fragile spreadsheets and macros, built to run where IT allows nothing: no admin rights, no network.",
           links: [
-            { label: "Scheduling tool", href: "#work-scheduler" },
-            { label: "dz-cod", href: "#work-dz-cod" },
+            { label: "Scheduling tool", slug: "scheduler" },
+            { label: "dz-cod", slug: "dz-cod" },
           ],
         },
         {
@@ -70,50 +77,19 @@ export const copy: Record<Lang, Copy> = {
           title: "Production planning",
           body:
             "Scheduling, raw-material checks and productivity reporting for a multi-section production plant, from the ERP's exports to the shop floor.",
-          links: [{ label: "Planning toolkit", href: "#work-toolkit" }],
+          links: [{ label: "Planning toolkit", slug: "planning-toolkit" }],
         },
       ],
     },
     work: {
-      heading: "Selected work",
+      eyebrow: "Selected work",
+      heading: "Projects",
       note: "Visuals for the plant tools use a synthetic demo plant built on public ISA-95 and IEC standards, not real plant data.",
-      items: [
-        {
-          id: "ozone",
-          title: "Ozone hand-disinfection device",
-          tags: ["Field", "Hardware"],
-          body:
-            "A touchless tap that makes ozonated water on demand from a cold-plasma generator. Preliminary lab trials cut bacteria by 97–99%, against 93% for an alcohol gel.",
-          status: "MSc thesis, 2025 · team of three",
-        },
-        {
-          id: "scheduler",
-          title: "Production scheduling tool",
-          tags: ["Software", "Planning"],
-          body:
-            "Machine queues and dated schedules for every section of a cable plant, built from the ERP's daily export. It replaced a VBA macro and runs as a portable app on a locked-down PC.",
-          status: "In daily use",
-        },
-        {
-          id: "toolkit",
-          title: "Planning toolkit",
-          tags: ["Software", "Planning"],
-          body:
-            "Raw-material checks against stock with substitutes, a shortage outlook, and a productivity report that rates each machine against the day's product mix. All the tools share one data foundation.",
-          status: "Built and tested",
-        },
-        {
-          id: "dz-cod",
-          title: "dz-cod",
-          tags: ["Software", "ERP"],
-          body:
-            "A cash-on-delivery back office for Algerian online sellers, built on ERPNext: order workflow, courier settlement, returns, and features switched on per client.",
-          status: "Open source · launching",
-        },
-      ],
+      read: "Read the case study",
     },
     experience: {
-      heading: "Experience",
+      eyebrow: "Experience",
+      heading: "Where I've worked",
       items: [
         {
           when: "2025 – now",
@@ -139,7 +115,7 @@ export const copy: Record<Lang, Copy> = {
           when: "2023 – 2025",
           role: "Electronics and controls, ozone disinfection device",
           where: "Alpelec Laboratory · Sidi Bel Abbès",
-          body: "Designed the control side of the device: ESP32-S3, relays, hand detection, flow sensing.",
+          body: "Electronics and control of the device, including its gas-detection safety mechanism.",
         },
         {
           when: "2022",
@@ -156,61 +132,66 @@ export const copy: Record<Lang, Copy> = {
       ],
     },
     hire: {
-      heading: "Work with me",
-      lede: "I build small, solid tools for businesses that run on spreadsheets.",
+      eyebrow: "Work with me",
+      heading: "Small, solid tools for businesses that run on spreadsheets",
+      lede: "I take the spreadsheet or macro your team depends on and turn it into something that doesn't break.",
       items: [
-        "Excel and Power Query reports that refresh in one click, with no macros",
-        "VBA macros replaced by tested desktop apps",
-        "Internal tools that work offline, on PCs where you can't install anything",
-        "ERPNext set-up and custom apps",
+        ["Excel and Power Query", "Reports that refresh in one click, with no macros"],
+        ["Macro replacement", "VBA turned into a tested desktop app"],
+        ["Offline internal tools", "For PCs where you can't install anything"],
+        ["ERPNext", "Set-up and custom apps"],
       ],
       cta: "Tell me what you're working with",
     },
     contact: {
-      heading: "Contact",
+      heading: "Let's talk",
       lede: "Email is best. I reply in English, French or Arabic.",
       email: "Email me",
     },
-    footer: { demo: "Plant visuals use synthetic demo data." },
+    project: { back: "All projects", next: "Next project", demo: "Illustration on the demo plant (synthetic data)", facts: "Project facts" },
+    footer: { role: "Electrical engineer · field, software, planning", demo: "Plant visuals use synthetic demo data." },
   },
 
   fr: {
     meta: {
       title: "Adem Benlechheb, ingénieur électricien",
       description:
-        "Ingénieur électricien  centrales, ateliers de production et les logiciels qui les font tourner. Ingénierie terrain, logiciel et planification de production.",
+        "Ingénieur électricien : centrales, ateliers de production et les logiciels qui les font tourner. Ingénierie terrain, logiciel et planification de production.",
     },
-    nav: { tracks: "Mon métier", work: "Projets", experience: "Parcours", hire: "Travailler ensemble", contact: "Contact" },
+    nav: { work: "Projets", experience: "Parcours", hire: "Travailler ensemble", contact: "Contact", theme: "Passer en thème clair ou sombre" },
     hero: {
       eyebrow: "Ingénieur électricien · Alger, Algérie",
       title: "Centrales, ateliers de production, et les logiciels qui les font tourner.",
       lede:
-        "Master en électrotechnique, major de promotion. Terrain sur turbines à gaz et réseau électrique. Des outils de planification utilisés chaque jour chez un fabricant de câbles.",
-      cv: "Télécharger le CV",
-      cvHref: "/cv/adem-benlechheb-cv-fr.pdf",
+        "Ingénieur électricien avec une expérience terrain sur turbines à gaz et réseau électrique. Je construis les outils sur lesquels tourne une usine de production, et je suis ouvert aux postes terrain, logiciel et planification.",
+      cv: "CV (en anglais)",
       hire: "Travailler ensemble",
     },
+    stats: [
+      ["Master", "Électrotechnique, major de promotion"],
+      ["Chaque jour", "Mon outil d'ordonnancement planifie chaque section d'une câblerie"],
+      ["99 %", "Bactéries éliminées lors d'un essai du prototype à ozone de mon équipe"],
+      ["3", "Langues : arabe, anglais, français"],
+    ],
     tracks: {
-      heading: "Mon métier",
+      eyebrow: "Mon métier",
+      heading: "Trois façons d'aider",
       items: [
         {
           id: "field",
           title: "Ingénierie terrain",
           body:
-            "Production d'électricité et équipements d'usine, sur le terrain  rondes de maintenance sur turbines à gaz, aide au diagnostic de défauts sur le réseau, et un prototype à ozone haute tension construit et testé au laboratoire.",
-          links: [
-            { label: "Dispositif à ozone", href: "#work-ozone" },
-            { label: "Parcours", href: "#experience" },
-          ],
+            "Production d'électricité et équipements d'usine, sur le terrain : rondes de maintenance sur turbines à gaz, aide au diagnostic de défauts sur le réseau, et un prototype à ozone haute tension construit et testé au laboratoire.",
+          links: [{ label: "Dispositif à ozone", slug: "ozone-device" }],
         },
         {
           id: "software",
           title: "Logiciel",
           body:
-            "Des applications de bureau testées et des extensions d'ERP qui remplacent des tableurs et des macros fragiles, conçues pour tourner là où l'informatique ne permet rien  sans droits admin, sans réseau.",
+            "Des applications de bureau testées et des extensions d'ERP qui remplacent des tableurs et des macros fragiles, conçues pour tourner là où l'informatique ne permet rien : sans droits admin, sans réseau.",
           links: [
-            { label: "Outil d'ordonnancement", href: "#work-scheduler" },
-            { label: "dz-cod", href: "#work-dz-cod" },
+            { label: "Outil d'ordonnancement", slug: "scheduler" },
+            { label: "dz-cod", slug: "dz-cod" },
           ],
         },
         {
@@ -218,50 +199,19 @@ export const copy: Record<Lang, Copy> = {
           title: "Planification de production",
           body:
             "Ordonnancement, contrôle des matières premières et suivi de productivité pour une usine à plusieurs sections, des extractions de l'ERP jusqu'à l'atelier.",
-          links: [{ label: "Boîte à outils de planification", href: "#work-toolkit" }],
+          links: [{ label: "Boîte à outils de planification", slug: "planning-toolkit" }],
         },
       ],
     },
     work: {
-      heading: "Projets choisis",
+      eyebrow: "Projets choisis",
+      heading: "Projets",
       note: "Les visuels des outils d'usine viennent d'une usine de démonstration fictive, construite sur les normes publiques ISA-95 et CEI, et non de données réelles.",
-      items: [
-        {
-          id: "ozone",
-          title: "Dispositif de désinfection des mains à l'ozone",
-          tags: ["Terrain", "Matériel"],
-          body:
-            "Un robinet sans contact qui produit de l'eau ozonée à la demande grâce à un générateur à plasma froid. Lors d'essais préliminaires, la charge bactérienne a baissé de 97 à 99 , contre 93  pour un gel hydroalcoolique.",
-          status: "Mémoire de master, 2025 · équipe de trois",
-        },
-        {
-          id: "scheduler",
-          title: "Outil d'ordonnancement de production",
-          tags: ["Logiciel", "Planification"],
-          body:
-            "Files d'attente par machine et plannings datés pour chaque section d'une câblerie, à partir de l'extraction quotidienne de l'ERP. Il a remplacé une macro VBA et tourne en application portable sur un poste verrouillé.",
-          status: "Utilisé chaque jour",
-        },
-        {
-          id: "toolkit",
-          title: "Boîte à outils de planification",
-          tags: ["Logiciel", "Planification"],
-          body:
-            "Contrôle des matières face au stock avec substitutions, prévision des ruptures, et un rapport qui juge chaque machine selon le mix de produits du jour. Tous les outils partagent une même base de données.",
-          status: "Construit et testé",
-        },
-        {
-          id: "dz-cod",
-          title: "dz-cod",
-          tags: ["Logiciel", "ERP"],
-          body:
-            "Un back-office de paiement à la livraison pour les vendeurs en ligne algériens, sur ERPNext  circuit des commandes, règlements des transporteurs, retours, et fonctions activées client par client.",
-          status: "Open source · en lancement",
-        },
-      ],
+      read: "Lire l'étude de cas",
     },
     experience: {
-      heading: "Parcours",
+      eyebrow: "Parcours",
+      heading: "Où j'ai travaillé",
       items: [
         {
           when: "2025 – aujourd'hui",
@@ -275,7 +225,7 @@ export const copy: Record<Lang, Copy> = {
           role: "Stagiaire, exploitation et maintenance de centrale à gaz",
           where: "Sonelgaz (SPE), El Hamma · Alger",
           body:
-            "Rondes de maintenance sur un parc à cycle simple (Ansaldo V94.3A, GE TM2500)  skids gaz, huile de lubrification, air comprimé, eau déminéralisée. Étude du contrôle-commande (Egatrol) et des cas HSE.",
+            "Rondes de maintenance sur un parc à cycle simple (Ansaldo V94.3A, GE TM2500) : skids gaz, huile de lubrification, air comprimé, eau déminéralisée. Étude du contrôle-commande (Egatrol) et des cas HSE.",
         },
         {
           when: "2023",
@@ -287,7 +237,7 @@ export const copy: Record<Lang, Copy> = {
           when: "2023 – 2025",
           role: "Électronique et commande, dispositif de désinfection à l'ozone",
           where: "Laboratoire Alpelec · Sidi Bel Abbès",
-          body: "Conception de la partie commande  ESP32-S3, relais, détection des mains, mesure de débit.",
+          body: "Électronique et commande du dispositif, dont son mécanisme de sécurité de détection de gaz.",
         },
         {
           when: "2022",
@@ -304,21 +254,34 @@ export const copy: Record<Lang, Copy> = {
       ],
     },
     hire: {
-      heading: "Travailler ensemble",
-      lede: "Je construis de petits outils solides pour les entreprises qui tournent sur des tableurs.",
+      eyebrow: "Travailler ensemble",
+      heading: "De petits outils solides pour les entreprises qui tournent sur des tableurs",
+      lede: "Je reprends le tableur ou la macro dont votre équipe dépend et j'en fais quelque chose qui ne casse pas.",
       items: [
-        "Rapports Excel et Power Query qui se mettent à jour en un clic, sans macros",
-        "Des macros VBA remplacées par des applications testées",
-        "Des outils internes qui marchent hors ligne, sur des postes où l'on ne peut rien installer",
-        "Mise en place d'ERPNext et applications sur mesure",
+        ["Excel et Power Query", "Des rapports qui se mettent à jour en un clic, sans macros"],
+        ["Remplacement de macros", "Du VBA transformé en application testée"],
+        ["Outils internes hors ligne", "Pour les postes où l'on ne peut rien installer"],
+        ["ERPNext", "Mise en place et applications sur mesure"],
       ],
       cta: "Parlez-moi de votre besoin",
     },
     contact: {
-      heading: "Contact",
+      heading: "Parlons-en",
       lede: "Le plus simple est l'e-mail. Je réponds en français, en anglais ou en arabe.",
       email: "M'écrire",
     },
-    footer: { demo: "Les visuels d'usine utilisent des données de démonstration fictives." },
+    project: { back: "Tous les projets", next: "Projet suivant", demo: "Illustration sur l'usine de démonstration (données fictives)", facts: "Le projet en bref" },
+    footer: { role: "Ingénieur électricien · terrain, logiciel, planification", demo: "Les visuels d'usine utilisent des données de démonstration fictives." },
   },
 };
+
+// French typography: a no-break space before : ; ! ? and %.
+function frTypo<T>(value: T): T {
+  if (typeof value === "string") return value.replace(/ ([:;!?%])/g, " $1") as T;
+  if (Array.isArray(value)) return value.map(frTypo) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, k === "slug" ? v : frTypo(v)])) as T;
+  }
+  return value;
+}
+copy.fr = frTypo(copy.fr);

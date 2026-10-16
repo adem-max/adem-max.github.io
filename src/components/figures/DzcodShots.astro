@@ -1,0 +1,170 @@
+---
+// The dz-cod order life cycle, plus screenshots of the demo shop when they exist in
+// public/img/dzcod/ (the demo shop is fictional, so they are safe to publish).
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import type { Lang } from "../../i18n/ui.ts";
+
+interface Props {
+  lang: Lang;
+  compact?: boolean;
+}
+const { lang, compact = false } = Astro.props;
+const en = lang === "en";
+
+const dir = join(process.cwd(), "public", "img", "dzcod");
+const CAPTIONS: Record<string, [string, string]> = {
+  "orders.png": ["Order list of the demo shop, by status", "Liste des commandes de la boutique de démonstration, par statut"],
+  "order.png": ["One order, with its workflow actions", "Une commande, avec ses actions de workflow"],
+  "settlement.png": ["A courier's cash settlement", "Le versement d'un transporteur"],
+  "report.png": ["Return rate by product", "Taux de retour par produit"],
+};
+const shots = existsSync(dir)
+  ? readdirSync(dir)
+      .filter((f) => f in CAPTIONS)
+      .sort((a, b) => Object.keys(CAPTIONS).indexOf(a) - Object.keys(CAPTIONS).indexOf(b))
+  : [];
+
+const MAIN = en
+  ? ["New", "Confirmed", "Prepared", "Shipped", "Delivered", "Settled"]
+  : ["Nouvelle", "Confirmée", "Préparée", "Expédiée", "Livrée", "Réglée"];
+const SIDE = en ? { unreachable: "Unreachable", returned: "Returned", cancelled: "Cancelled" } : { unreachable: "Injoignable", returned: "Retournée", cancelled: "Annulée" };
+
+const W = 960;
+const step = W / MAIN.length;
+const cx = (i: number) => step * i + step / 2;
+const boxW = step - 26;
+---
+
+{
+  compact && shots.length > 0 ? (
+    <img class="cover-shot" src={`/img/dzcod/${shots[0]}`} alt={CAPTIONS[shots[0]][en ? 0 : 1]} loading="lazy" />
+  ) : (
+    <figure class:list={["flow", { compact }]}>
+      <svg viewBox={`0 0 ${W} ${compact ? 120 : 150}`} role="img" aria-label={en ? "Order life cycle" : "Cycle de vie d'une commande"}>
+        <defs>
+          <marker id={compact ? "arr-c" : "arr"} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" class="arrow" />
+          </marker>
+        </defs>
+        {MAIN.map((s, i) => (
+          <g>
+            <rect x={cx(i) - boxW / 2} y="20" width={boxW} height="40" rx="8" class:list={["node", { end: i === MAIN.length - 1 }]} />
+            <text x={cx(i)} y="45" class:list={["lbl", { end: i === MAIN.length - 1 }]} text-anchor="middle">
+              {s}
+            </text>
+            {i < MAIN.length - 1 && (
+              <line x1={cx(i) + boxW / 2 + 2} x2={cx(i + 1) - boxW / 2 - 4} y1="40" y2="40" class="edge" marker-end={`url(#${compact ? "arr-c" : "arr"})`} />
+            )}
+          </g>
+        ))}
+        <g>
+          <rect x={cx(0) - boxW / 2} y="92" width={boxW} height="34" rx="8" class="side" />
+          <text x={cx(0)} y="114" class="lbl small" text-anchor="middle">{SIDE.unreachable}</text>
+          <line x1={cx(0)} x2={cx(0)} y1="60" y2="90" class="edge dash" marker-end={`url(#${compact ? "arr-c" : "arr"})`} />
+          <rect x={cx(2) - boxW / 2} y="92" width={boxW} height="34" rx="8" class="side" />
+          <text x={cx(2)} y="114" class="lbl small" text-anchor="middle">{SIDE.cancelled}</text>
+          <line x1={cx(1)} x2={cx(2) - boxW / 2} y1="60" y2="106" class="edge dash" marker-end={`url(#${compact ? "arr-c" : "arr"})`} />
+          <rect x={cx(4) - boxW / 2} y="92" width={boxW} height="34" rx="8" class="side" />
+          <text x={cx(4)} y="114" class="lbl small" text-anchor="middle">{SIDE.returned}</text>
+          <line x1={cx(3)} x2={cx(4) - boxW / 2} y1="60" y2="106" class="edge dash" marker-end={`url(#${compact ? "arr-c" : "arr"})`} />
+        </g>
+      </svg>
+      {!compact && shots.length > 0 && (
+        <div class="shots">
+          {shots.map((f) => (
+            <figure>
+              <img src={`/img/dzcod/${f}`} alt={CAPTIONS[f][en ? 0 : 1]} loading="lazy" />
+              <figcaption>{CAPTIONS[f][en ? 0 : 1]}</figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+    </figure>
+  )
+}
+
+<style>
+  .flow {
+    margin: 0;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    font-family: var(--f-body);
+  }
+  .node {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .node.end {
+    fill: var(--ink);
+  }
+  .side {
+    fill: var(--bg-alt);
+    stroke: var(--rule);
+  }
+  .lbl {
+    font-size: 15px;
+    font-weight: 600;
+    fill: var(--ink);
+  }
+  .lbl.end {
+    fill: var(--bg);
+  }
+  .lbl.small {
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--muted);
+  }
+  .edge {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .edge.dash {
+    stroke: var(--muted);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 3;
+  }
+  .arrow {
+    fill: var(--accent);
+  }
+  .shots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 28px;
+  }
+  .shots figure {
+    margin: 0;
+  }
+  .shots img,
+  .cover-shot {
+    width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid var(--rule);
+  }
+  .cover-shot {
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top left;
+  }
+  .shots figcaption {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  @media (max-width: 640px) {
+    .shots {
+      grid-template-columns: 1fr;
+    }
+    .flow:not(.compact) {
+      overflow-x: auto;
+    }
+    .flow:not(.compact) svg {
+      min-width: 620px;
+    }
+  }
+</style>

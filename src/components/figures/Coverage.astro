@@ -1,0 +1,178 @@
+---
+// Stock against open need for each material of the demo plant, drawn at build time.
+import type { Lang } from "../../i18n/ui.ts";
+import { demoPlant } from "../../lib/schedule.ts";
+
+interface Props {
+  lang: Lang;
+  compact?: boolean;
+}
+const { lang, compact = false } = Astro.props;
+
+const FR_NAMES: Record<string, string> = {
+  "MAT-CU-ROD": "Fil machine cuivre 8 mm",
+  "MAT-AL-ROD": "Fil machine aluminium 9,5 mm",
+  "MAT-XLPE": "Mélange PRC (réticulation silane)",
+  "MAT-PVC-INS": "Mélange PVC isolation",
+  "MAT-PVC-SHE": "Mélange PVC gaine",
+  "MAT-STEEL": "Fil d'armure acier galvanisé",
+};
+
+const plant = demoPlant();
+const rows = plant.stock.map((s) => {
+  const m = plant.materials.find((x) => x.material_id === s.material_id)!;
+  const need = Math.max(s.open_need_kg, 1);
+  return {
+    name: lang === "en" ? m.name : FR_NAMES[m.material_id] ?? m.name,
+    onHand: s.on_hand_kg / need,
+    withOrder: (s.on_hand_kg + s.on_order_kg) / need,
+    short: s.on_hand_kg < s.open_need_kg,
+    pct: Math.round((s.on_hand_kg / need) * 100),
+    expected: s.expected_date,
+  };
+});
+
+const MAX = 1.6;
+const fmt = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "short", timeZone: "UTC" });
+const t =
+  lang === "en"
+    ? { title: "Stock against the open need of every order", need: "Open need", stock: "On hand", order: "On order", due: "arrives", short: "short" }
+    : { title: "Stock face au besoin ouvert de tous les ordres", need: "Besoin ouvert", stock: "En stock", order: "Commandé", due: "arrive le", short: "manque" };
+---
+
+<figure class:list={["cov", { compact }]} aria-label={t.title}>
+  <ul>
+    {
+      rows.map((r) => (
+        <li>
+          {!compact && <span class="name">{r.name}</span>}
+          <span class="track">
+            <span class="fill order" style={`width:${(Math.min(r.withOrder, MAX) / MAX) * 100}%`} />
+            <span class:list={["fill", "stock", { short: r.short }]} style={`width:${(Math.min(r.onHand, MAX) / MAX) * 100}%`} />
+            <span class="need" style={`left:${(1 / MAX) * 100}%`} />
+          </span>
+          {!compact && (
+            <span class:list={["val", { short: r.short }]}>
+              {r.pct}%{r.short && r.expected ? ` · ${t.due} ${fmt(r.expected)}` : ""}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+  {
+    !compact && (
+      <figcaption>
+        <span class="key"><i class="sw stock" />{t.stock}</span>
+        <span class="key"><i class="sw short" />{t.stock}, {t.short}</span>
+        <span class="key"><i class="sw order" />{t.order}</span>
+        <span class="key"><i class="sw need" />{t.need} = 100%</span>
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .cov {
+    margin: 0;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  li {
+    display: grid;
+    grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 150px;
+    gap: 14px;
+    align-items: center;
+    font-size: 14px;
+  }
+  .compact li {
+    grid-template-columns: 1fr;
+  }
+  .compact ul {
+    gap: 9px;
+  }
+  .track {
+    position: relative;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--bg-alt);
+    overflow: hidden;
+  }
+  .compact .track {
+    height: 12px;
+  }
+  .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 4px;
+  }
+  .order {
+    background: color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+  .stock {
+    background: var(--ink);
+  }
+  .stock.short {
+    background: var(--accent);
+  }
+  .need {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: var(--text);
+  }
+  .val {
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .val.short {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sw {
+    width: 14px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .sw.stock {
+    background: var(--ink);
+  }
+  .sw.short {
+    background: var(--accent);
+  }
+  .sw.order {
+    background: color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+  .sw.need {
+    width: 2px;
+    height: 14px;
+    background: var(--text);
+  }
+  @media (max-width: 640px) {
+    li {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+</style>

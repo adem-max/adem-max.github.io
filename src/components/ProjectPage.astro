@@ -1,0 +1,220 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import Base from "../layouts/Base.astro";
+import Figure from "./Figure.astro";
+import { copy, type Lang } from "../i18n/ui.ts";
+import { projects, type Project } from "../content/projects.ts";
+
+interface Props {
+  lang: Lang;
+  project: Project;
+}
+const { lang, project: p } = Astro.props;
+const t = copy[lang];
+const all = projects[lang];
+const next = all[(all.findIndex((x) => x.slug === p.slug) + 1) % all.length];
+const home = getRelativeLocaleUrl(lang, "");
+const demoFigures = new Set(["gantt", "coverage"]);
+---
+
+<Base lang={lang} path={`work/${p.slug}`} title={`${p.title} · Adem Benlechheb`} description={p.tagline}>
+  <article>
+    <header class="head wrap">
+      <a class="back" href={`${home}#work`}>← {t.project.back}</a>
+      <p class="tags">{p.tags.map((tag) => <span class="tag">{tag}</span>)}</p>
+      <h1>{p.title}</h1>
+      <p class="tagline">{p.tagline}</p>
+      {p.link && <p><a class="btn" href={p.link.href} rel="noopener">{p.link.label} ↗</a></p>}
+    </header>
+
+    <div class="wrap layout">
+      <aside class="facts" aria-label={t.project.facts}>
+        <dl>
+          {
+            p.meta.map(([k, v]) => (
+              <div>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))
+          }
+          <div>
+            <dt>{lang === "en" ? "Status" : "Statut"}</dt>
+            <dd class="status">{p.status}</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <div class="body">
+        {
+          p.sections.map((s) => (
+            <section>
+              <h2>{s.heading}</h2>
+              {s.body?.map((para) => <p>{para}</p>)}
+              {s.list && (
+                <ul>
+                  {s.list.map((li) => (
+                    <li>{li}</li>
+                  ))}
+                </ul>
+              )}
+              {s.figure && (
+                <div class="figure">
+                  <Figure name={s.figure} lang={lang} />
+                  {demoFigures.has(s.figure) && <p class="demo-note">{t.project.demo}</p>}
+                </div>
+              )}
+            </section>
+          ))
+        }
+      </div>
+    </div>
+
+    <nav class="wrap next" aria-label={t.project.next}>
+      <a href={getRelativeLocaleUrl(lang, `work/${next.slug}`)}>
+        <span class="eyebrow">{t.project.next}</span>
+        <span class="next-title">{next.title} →</span>
+      </a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .head {
+    padding-block: clamp(36px, 6vw, 72px) 40px;
+    max-width: 960px;
+    margin-inline: auto;
+  }
+  .back {
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 28px;
+  }
+  .back:hover {
+    color: var(--ink);
+  }
+  .tags {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-size: clamp(34px, 5vw, 54px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  .tagline {
+    font-size: clamp(18px, 1.8vw, 21px);
+    color: var(--muted);
+    max-width: 58ch;
+    margin: 18px 0 24px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 64px);
+    max-width: 1120px;
+    align-items: start;
+  }
+  .facts {
+    position: sticky;
+    top: 88px;
+    background: var(--bg-alt);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  dl {
+    margin: 0;
+    display: grid;
+    gap: 16px;
+  }
+  dt {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  dd {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  dd.status {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  .body {
+    min-width: 0;
+  }
+  .body section + section {
+    margin-top: 44px;
+  }
+  .body h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .body p,
+  .body ul {
+    max-width: var(--measure);
+    margin: 0 0 14px;
+  }
+  .body ul {
+    padding-left: 20px;
+  }
+  .body li {
+    margin-bottom: 8px;
+  }
+  .body li::marker {
+    color: var(--accent);
+  }
+  .figure {
+    margin: 28px 0 8px;
+    padding: 24px;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  .demo-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 14px 0 0 !important;
+  }
+  .next {
+    margin-top: 72px;
+  }
+  .next a {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 28px 0;
+    border-top: 1px solid var(--rule);
+    text-decoration: none;
+  }
+  .next-title {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .next a:hover .next-title {
+    color: var(--accent-text);
+  }
+  @media (max-width: 860px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .facts {
+      position: static;
+    }
+  }
+  @media (max-width: 640px) {
+    .figure {
+      padding: 16px;
+    }
+  }
+</style>

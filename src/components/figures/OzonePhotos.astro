@@ -1,0 +1,56 @@
+---
+import type { Lang } from "../../i18n/ui.ts";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const en = lang === "en";
+const PHOTOS = [
+  { src: "/img/ozone/unit-corridor.jpg", w: 857, h: 1100, en: "The unit where it's meant to go: a busy corridor (presentation image)", fr: "Le lave-mains là où il doit servir : un couloir fréquenté (image de présentation)" },
+  { src: "/img/ozone/unit-front.jpg", w: 385, h: 481, en: "The prototype in the lab", fr: "Le prototype au laboratoire" },
+  { src: "/img/ozone/enclosure.jpg", w: 784, h: 900, en: "The earthed metal enclosure that holds the ozone stage", fr: "Le boîtier métallique relié à la terre qui abrite l'étage ozone" },
+];
+---
+
+<div class="photos">
+  {
+    PHOTOS.map((p) => (
+      <figure>
+        <img src={p.src} alt={en ? p.en : p.fr} width={p.w} height={p.h} loading="lazy" />
+        <figcaption>{en ? p.en : p.fr.replace(" :", " :")}</figcaption>
+      </figure>
+    ))
+  }
+</div>
+
+<style>
+  .photos {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+  }
+  figure {
+    margin: 0;
+  }
+  img {
+    width: 100%;
+    border-radius: var(--radius);
+    background: var(--bg-alt);
+  }
+  figcaption {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  @media (max-width: 640px) {
+    .photos {
+      grid-template-columns: 1fr 1fr;
+    }
+    .photos figure:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

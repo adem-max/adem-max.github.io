@@ -1,0 +1,155 @@
+---
+// Bacteria counts before and after each wash, from the thesis (one trial per condition).
+import type { Lang } from "../../i18n/ui.ts";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const en = lang === "en";
+
+const TRIALS = [
+  { id: "air-15s", en: "Ozonated water, ambient air, 15 s", fr: "Eau ozonée, air ambiant, 15 s", before: 110, after: 54, gel: false },
+  { id: "air-30s", en: "Ozonated water, ambient air, 30 s", fr: "Eau ozonée, air ambiant, 30 s", before: 170, after: 5, gel: false },
+  { id: "oxygen-15s", en: "Ozonated water, oxygen feed, 15 s", fr: "Eau ozonée, alimentation en oxygène, 15 s", before: 178, after: 2, gel: false },
+  { id: "gel-15s", en: "Alcohol gel, 15 s (reference)", fr: "Gel hydroalcoolique, 15 s (référence)", before: 198, after: 13, gel: true },
+].map((r) => ({ ...r, pct: (1 - r.after / r.before) * 100 }));
+
+const pct = (v: number) => (en ? `${v.toFixed(1)}%` : `${v.toFixed(1).replace(".", ",")} %`);
+const t = en
+  ? { title: "Bacterial reduction by condition", before: "Before", after: "After", colonies: "colonies", source: "Source: MSc thesis, Djillali Liabès University, 2025. One trial per condition." }
+  : { title: "Réduction bactérienne par condition", before: "Avant", after: "Après", colonies: "colonies", source: "Source : mémoire de master, Université Djillali Liabès, 2025. Un essai par condition." };
+---
+
+<figure class="results" aria-label={t.title}>
+  <ul class="bars">
+    {
+      TRIALS.map((r) => (
+        <li>
+          <span class="label">{en ? r.en : r.fr}</span>
+          <span class="track">
+            <span class:list={["fill", { gel: r.gel }]} style={`width:${r.pct}%`} />
+          </span>
+          <span class="pct">{pct(r.pct)}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <div class="dishes">
+    {
+      TRIALS.map((r) => (
+        <div class="pair">
+          <div class="imgs">
+            <figure>
+              <img src={`/img/ozone/dish-${r.id}-before.jpg`} alt={`${t.before}: ${r.before} ${t.colonies}`} loading="lazy" width="200" height="200" />
+              <figcaption>
+                {t.before} · {r.before}
+              </figcaption>
+            </figure>
+            <figure>
+              <img src={`/img/ozone/dish-${r.id}-after.jpg`} alt={`${t.after}: ${r.after} ${t.colonies}`} loading="lazy" width="200" height="200" />
+              <figcaption>
+                {t.after} · {r.after}
+              </figcaption>
+            </figure>
+          </div>
+          <p>{en ? r.en : r.fr}</p>
+        </div>
+      ))
+    }
+  </div>
+  <figcaption class="source">{t.source}</figcaption>
+</figure>
+
+<style>
+  .results {
+    margin: 0;
+    display: grid;
+    gap: 28px;
+  }
+  .bars {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .bars li {
+    display: grid;
+    grid-template-columns: minmax(180px, 300px) minmax(0, 1fr) 64px;
+    gap: 14px;
+    align-items: center;
+    font-size: 15px;
+  }
+  .track {
+    height: 18px;
+    background: var(--bg-alt);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .fill {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+    border-radius: 4px;
+  }
+  .fill.gel {
+    background: color-mix(in srgb, var(--muted) 60%, transparent);
+  }
+  .pct {
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .dishes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .pair p {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .imgs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .imgs figure {
+    margin: 0;
+  }
+  .imgs img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 50%;
+    background: #111;
+  }
+  .imgs figcaption {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .source {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  @media (max-width: 860px) {
+    .dishes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .bars li {
+      grid-template-columns: 1fr 56px;
+    }
+    .bars .label {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
