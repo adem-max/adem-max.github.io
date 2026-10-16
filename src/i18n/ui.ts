@@ -4,7 +4,7 @@
 export const languages = { en: "English", fr: "Français" } as const;
 export type Lang = keyof typeof languages;
 
-export const EMAIL = "adembenlechheb1@gmail.com";
+export const EMAIL = "adembenlecheb1@gmail.com";
 export const LINKEDIN = "https://www.linkedin.com/in/adem-benlechheb-283476218";
 export const GITHUB = "https://github.com/adem-max";
 
@@ -83,7 +83,7 @@ export const copy: Record<Lang, Copy> = {
           title: "Ozone hand-disinfection device",
           tags: ["Field", "Hardware"],
           body:
-            "A touchless tap that makes ozonated water on demand from a cold-plasma generator. Preliminary lab trials cut bacteria by 97–99 %, against 93 % for an alcohol gel.",
+            "A touchless tap that makes ozonated water on demand from a cold-plasma generator. Preliminary lab trials cut bacteria by 97–99%, against 93% for an alcohol gel.",
           status: "MSc thesis, 2025 · team of three",
         },
         {
@@ -178,7 +178,7 @@ export const copy: Record<Lang, Copy> = {
     meta: {
       title: "Adem Benlechheb, ingénieur électricien",
       description:
-        "Ingénieur électricien : centrales, ateliers de production et les logiciels qui les font tourner. Ingénierie terrain, logiciel et planification de production.",
+        "Ingénieur électricien  centrales, ateliers de production et les logiciels qui les font tourner. Ingénierie terrain, logiciel et planification de production.",
     },
     nav: { tracks: "Mon métier", work: "Projets", experience: "Parcours", hire: "Travailler ensemble", contact: "Contact" },
     hero: {
@@ -197,7 +197,7 @@ export const copy: Record<Lang, Copy> = {
           id: "field",
           title: "Ingénierie terrain",
           body:
-            "Production d'électricité et équipements d'usine, sur le terrain : rondes de maintenance sur turbines à gaz, aide au diagnostic de défauts sur le réseau, et un prototype à ozone haute tension construit et testé au laboratoire.",
+            "Production d'électricité et équipements d'usine, sur le terrain  rondes de maintenance sur turbines à gaz, aide au diagnostic de défauts sur le réseau, et un prototype à ozone haute tension construit et testé au laboratoire.",
           links: [
             { label: "Dispositif à ozone", href: "#work-ozone" },
             { label: "Parcours", href: "#experience" },
@@ -207,7 +207,7 @@ export const copy: Record<Lang, Copy> = {
           id: "software",
           title: "Logiciel",
           body:
-            "Des applications de bureau testées et des extensions d'ERP qui remplacent des tableurs et des macros fragiles, conçues pour tourner là où l'informatique ne permet rien : sans droits admin, sans réseau.",
+            "Des applications de bureau testées et des extensions d'ERP qui remplacent des tableurs et des macros fragiles, conçues pour tourner là où l'informatique ne permet rien  sans droits admin, sans réseau.",
           links: [
             { label: "Outil d'ordonnancement", href: "#work-scheduler" },
             { label: "dz-cod", href: "#work-dz-cod" },
@@ -231,7 +231,7 @@ export const copy: Record<Lang, Copy> = {
           title: "Dispositif de désinfection des mains à l'ozone",
           tags: ["Terrain", "Matériel"],
           body:
-            "Un robinet sans contact qui produit de l'eau ozonée à la demande grâce à un générateur à plasma froid. Lors d'essais préliminaires, la charge bactérienne a baissé de 97 à 99 %, contre 93 % pour un gel hydroalcoolique.",
+            "Un robinet sans contact qui produit de l'eau ozonée à la demande grâce à un générateur à plasma froid. Lors d'essais préliminaires, la charge bactérienne a baissé de 97 à 99 , contre 93  pour un gel hydroalcoolique.",
           status: "Mémoire de master, 2025 · équipe de trois",
         },
         {
@@ -255,7 +255,7 @@ export const copy: Record<Lang, Copy> = {
           title: "dz-cod",
           tags: ["Logiciel", "ERP"],
           body:
-            "Un back-office de paiement à la livraison pour les vendeurs en ligne algériens, sur ERPNext : circuit des commandes, règlements des transporteurs, retours, et fonctions activées client par client.",
+            "Un back-office de paiement à la livraison pour les vendeurs en ligne algériens, sur ERPNext  circuit des commandes, règlements des transporteurs, retours, et fonctions activées client par client.",
           status: "Open source · en lancement",
         },
       ],
@@ -275,7 +275,7 @@ export const copy: Record<Lang, Copy> = {
           role: "Stagiaire, exploitation et maintenance de centrale à gaz",
           where: "Sonelgaz (SPE), El Hamma · Alger",
           body:
-            "Rondes de maintenance sur un parc à cycle simple (Ansaldo V94.3A, GE TM2500) : skids gaz, huile de lubrification, air comprimé, eau déminéralisée. Étude du contrôle-commande (Egatrol) et des cas HSE.",
+            "Rondes de maintenance sur un parc à cycle simple (Ansaldo V94.3A, GE TM2500)  skids gaz, huile de lubrification, air comprimé, eau déminéralisée. Étude du contrôle-commande (Egatrol) et des cas HSE.",
         },
         {
           when: "2023",
@@ -287,7 +287,7 @@ export const copy: Record<Lang, Copy> = {
           when: "2023 – 2025",
           role: "Électronique et commande, dispositif de désinfection à l'ozone",
           where: "Laboratoire Alpelec · Sidi Bel Abbès",
-          body: "Conception de la partie commande : ESP32-S3, relais, détection des mains, mesure de débit.",
+          body: "Conception de la partie commande  ESP32-S3, relais, détection des mains, mesure de débit.",
         },
         {
           when: "2022",
