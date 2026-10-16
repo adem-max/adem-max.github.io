@@ -1,0 +1,7 @@
+material_id,name,unit
+MAT-CU-ROD,Copper rod 8 mm,kg
+MAT-AL-ROD,Aluminium rod 9.5 mm,kg
+MAT-XLPE,XLPE compound (silane cure),kg
+MAT-PVC-INS,PVC insulation compound,kg
+MAT-PVC-SHE,PVC sheath compound,kg
+MAT-STEEL,Galvanised steel armour wire,kg

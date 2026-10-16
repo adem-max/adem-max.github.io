@@ -1,0 +1,356 @@
+---
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { copy, EMAIL, LINKEDIN, type Lang } from "../i18n/ui.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = copy[lang];
+// The CV button shows only once the PDF is in public/cv/ (a copy without the phone number).
+const hasCv = existsSync(join(process.cwd(), "public", t.hero.cvHref));
+
+// The "nameplate" beside the hero: facts a recruiter scans for, laid out like a rating plate.
+const plate =
+  lang === "en"
+    ? [
+        ["Discipline", "Electrical, power systems"],
+        ["Degree", "MSc, top of class"],
+        ["Languages", "Arabic · English · French"],
+        ["Based in", "Algiers, open to travel"],
+      ]
+    : [
+        ["Discipline", "Électrotechnique, réseaux"],
+        ["Diplôme", "Master, major de promotion"],
+        ["Langues", "Arabe · anglais · français"],
+        ["Basé à", "Alger, mobile"],
+      ];
+---
+
+<section class="hero wrap" aria-labelledby="hero-title">
+  <div class="hero-text">
+    <p class="label">{t.hero.eyebrow}</p>
+    <h1 id="hero-title">{t.hero.title}</h1>
+    <p class="lede">{t.hero.lede}</p>
+    <div class="actions">
+      {hasCv && <a class="btn primary" href={t.hero.cvHref} download>{t.hero.cv}</a>}
+      <a class={hasCv ? "btn" : "btn primary"} href="#hire">{t.hero.hire}</a>
+      <a class="btn" href={LINKEDIN} rel="me noopener">LinkedIn</a>
+    </div>
+  </div>
+  <dl class="plate">
+    {
+      plate.map(([k, v]) => (
+        <div>
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>
+
+<section id="tracks" class="wrap block" aria-labelledby="tracks-title">
+  <h2 id="tracks-title" class="label">{t.tracks.heading}</h2>
+  <ol class="tracks">
+    {
+      t.tracks.items.map((track, i) => (
+        <li>
+          <span class="num">0{i + 1}</span>
+          <h3>{track.title}</h3>
+          <p>{track.body}</p>
+          <p class="links">
+            {track.links.map((l) => (
+              <a href={l.href}>{l.label} →</a>
+            ))}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<section id="work" class="wrap block" aria-labelledby="work-title">
+  <h2 id="work-title" class="label">{t.work.heading}</h2>
+  <div class="cards">
+    {
+      t.work.items.map((p) => (
+        <article id={`work-${p.id}`} class="card">
+          <p class="tags">
+            {p.tags.map((tag) => (
+              <span>{tag}</span>
+            ))}
+          </p>
+          <h3>{p.title}</h3>
+          <p>{p.body}</p>
+          <p class="status">{p.status}</p>
+        </article>
+      ))
+    }
+  </div>
+  <p class="note">{t.work.note}</p>
+</section>
+
+<section id="experience" class="wrap block" aria-labelledby="exp-title">
+  <h2 id="exp-title" class="label">{t.experience.heading}</h2>
+  <ol class="timeline">
+    {
+      t.experience.items.map((job) => (
+        <li>
+          <span class="when">{job.when}</span>
+          <div>
+            <h3>{job.role}</h3>
+            <p class="where">{job.where}</p>
+            <p>{job.body}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<section id="hire" class="wrap block" aria-labelledby="hire-title">
+  <h2 id="hire-title" class="label">{t.hire.heading}</h2>
+  <div class="hire">
+    <p class="hire-lede">{t.hire.lede}</p>
+    <ul>
+      {t.hire.items.map((item) => <li>{item}</li>)}
+    </ul>
+    <a class="btn primary" href={`mailto:${EMAIL}`}>{t.hire.cta}</a>
+  </div>
+</section>
+
+<section id="contact" class="wrap block" aria-labelledby="contact-title">
+  <h2 id="contact-title" class="label">{t.contact.heading}</h2>
+  <p>{t.contact.lede}</p>
+  <p class="contact-links">
+    <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+    <a href={LINKEDIN} rel="me noopener">LinkedIn</a>
+  </p>
+</section>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    gap: 48px;
+    align-items: end;
+    padding-block: clamp(48px, 9vw, 112px) 56px;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 5.6vw, 58px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-top: 14px;
+    max-width: 18ch;
+  }
+  .lede {
+    font-size: 19px;
+    color: var(--muted);
+    max-width: 54ch;
+    margin: 20px 0 28px;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .plate {
+    margin: 0;
+    border: 1.5px solid var(--ink);
+    border-radius: 6px;
+    background: var(--surface);
+    font-family: var(--f-mono);
+    font-size: 13px;
+  }
+  .plate div {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 12px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--rule);
+  }
+  .plate div:first-child {
+    border-top: 0;
+  }
+  .plate dt {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+    padding-top: 2px;
+  }
+  .plate dd {
+    margin: 0;
+  }
+
+  .block {
+    padding-top: 72px;
+    scroll-margin-top: 56px;
+  }
+  .block > h2.label {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+    margin-bottom: 28px;
+    font-weight: 500;
+  }
+
+  .tracks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .num {
+    font-family: var(--f-mono);
+    color: var(--accent);
+    font-size: 14px;
+  }
+  .tracks h3 {
+    font-size: 22px;
+    margin: 6px 0 10px;
+  }
+  .tracks p {
+    margin: 0 0 12px;
+    color: var(--muted);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-weight: 500;
+  }
+  .links a {
+    color: var(--ink);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-margin-top: 72px;
+  }
+  .card h3 {
+    font-size: 21px;
+  }
+  .card p {
+    margin: 0;
+  }
+  .tags {
+    display: flex;
+    gap: 8px;
+  }
+  .tags span {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--soft);
+    color: var(--muted);
+  }
+  .status {
+    margin-top: auto !important;
+    padding-top: 8px;
+    font-family: var(--f-mono);
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .note {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .timeline li {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 24px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .timeline li:first-child {
+    padding-top: 0;
+  }
+  .when {
+    font-family: var(--f-mono);
+    font-size: 14px;
+    color: var(--muted);
+    padding-top: 3px;
+  }
+  .timeline h3 {
+    font-size: 18px;
+  }
+  .timeline p {
+    margin: 4px 0 0;
+    max-width: var(--measure);
+  }
+  .where {
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .hire {
+    max-width: var(--measure);
+  }
+  .hire-lede {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  .hire ul {
+    padding-left: 20px;
+    margin: 0 0 24px;
+  }
+  .hire li {
+    margin-bottom: 6px;
+  }
+  .hire li::marker {
+    color: var(--accent);
+  }
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-size: 19px;
+    font-weight: 500;
+  }
+
+  @media (max-width: 860px) {
+    .hero {
+      grid-template-columns: 1fr;
+      align-items: start;
+      gap: 32px;
+    }
+    .tracks {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+  @media (max-width: 640px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+    .timeline li {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+</style>

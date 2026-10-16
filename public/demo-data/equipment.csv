@@ -1,0 +1,19 @@
+equipment_id,name,area,equipment_class,min_section_mm2,max_section_mm2,conductor_classes,families,rate_unit,setup_min,rates
+EQ-01,Rod breakdown line,Wire drawing,drawing,1.5,300,1 2,,kg/h,30,300:1600
+EQ-02,Multi-wire drawing line 1,Wire drawing,drawing,0.5,10,5,,kg/h,45,10:450
+EQ-03,Multi-wire drawing line 2,Wire drawing,drawing,0.5,10,5,,kg/h,45,10:450
+EQ-04,Tubular strander 19-wire,Conductor,stranding,1.5,35,,,m/min,40,10:120 35:80
+EQ-05,Rigid strander 61-wire,Conductor,stranding,25,300,,,m/min,90,70:40 150:25 300:15
+EQ-06,Bunching machine 1,Conductor,bunching,0.5,6,,,m/min,20,1.5:220 6:150
+EQ-07,Bunching machine 2,Conductor,bunching,0.5,6,,,m/min,20,1.5:220 6:150
+EQ-08,Extrusion line 60 mm,Insulation,insulating,0.5,16,,,m/min,45,2.5:1200 6:800 16:400
+EQ-09,Extrusion line 90 mm,Insulation,insulating,16,300,,,m/min,60,35:250 95:120 185:70 300:50
+EQ-10,Curing room,Insulation,curing,0.5,300,,,h/batch,0,300:10
+EQ-11,Core twisting line,Assembly,cabling,0.5,6,,cord,m/min,20,6:150
+EQ-12,Laying-up machine (drum twister),Assembly,cabling,10,300,,,m/min,60,35:60 95:40 300:25
+EQ-13,Armouring line,Assembly,armouring,10,300,,,m/min,90,35:18 300:12
+EQ-14,Sheathing line 90 mm,Sheathing,sheathing,0.5,16,,,m/min,40,6:150 16:80
+EQ-15,Sheathing line 120 mm,Sheathing,sheathing,10,300,,,m/min,60,50:50 150:30 300:20
+EQ-16,Test bay,Test & pack,testing,0.5,300,,,h/unit,10,16:0.01 300:0.5
+EQ-17,Coiling line,Test & pack,packing,0.5,10,,building-wire cord,m/min,10,10:250
+EQ-18,Rewinding line,Test & pack,packing,10,300,,power armoured,m/min,15,300:120

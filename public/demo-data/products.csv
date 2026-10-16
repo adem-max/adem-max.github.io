@@ -1,0 +1,19 @@
+product_id,designation,standard,family,cores,cross_section_mm2,conductor_material,conductor_class,insulation,armour,sheath,unit_length_m,weight,conductor_diameter_mm,insulation_mm,core_diameter_mm,laid_up_diameter_mm,armour_wire_mm,armour_wires,sheath_mm,overall_diameter_mm,max_resistance_ohm_per_km,route
+P-01,H07V-U 1.5 mm²,CENELEC HD 21,building-wire,1,1.5,Cu,1,PVC,none,none,100,6,1.38,0.7,2.78,2.78,,,,2.8,12.1,drawing > insulating > testing > packing
+P-02,H07V-U 2.5 mm²,CENELEC HD 21,building-wire,1,2.5,Cu,1,PVC,none,none,100,6,1.78,0.8,3.38,3.38,,,,3.4,7.41,drawing > insulating > testing > packing
+P-03,H07V-U 4 mm²,CENELEC HD 21,building-wire,1,4,Cu,1,PVC,none,none,100,3,2.26,0.8,3.86,3.86,,,,3.9,4.61,drawing > insulating > testing > packing
+P-04,H07V-R 6 mm²,CENELEC HD 21,building-wire,1,6,Cu,2,PVC,none,none,100,3,3.04,0.8,4.64,4.64,,,,4.6,3.08,drawing > stranding > insulating > testing > packing
+P-05,H07V-R 10 mm²,CENELEC HD 21,building-wire,1,10,Cu,2,PVC,none,none,100,2,3.93,1,5.93,5.93,,,,5.9,1.83,drawing > stranding > insulating > testing > packing
+P-06,H07V-K 1.5 mm²,CENELEC HD 21,building-wire,1,1.5,Cu,5,PVC,none,none,100,4,1.66,0.7,3.06,3.06,,,,3.1,13.3,drawing > bunching > insulating > testing > packing
+P-07,H07V-K 2.5 mm²,CENELEC HD 21,building-wire,1,2.5,Cu,5,PVC,none,none,100,4,2.14,0.8,3.74,3.74,,,,3.7,7.98,drawing > bunching > insulating > testing > packing
+P-08,H05VV-F 3G1.5 mm²,CENELEC HD 21.5,cord,3,1.5,Cu,5,PVC,none,PVC,100,5,1.66,0.7,3.06,6.61,,,0.9,8.4,13.3,drawing > bunching > insulating > cabling > sheathing > testing > packing
+P-09,H05VV-F 3G2.5 mm²,CENELEC HD 21.5,cord,3,2.5,Cu,5,PVC,none,PVC,100,4,2.14,0.8,3.74,8.08,,,1.1,10.3,7.98,drawing > bunching > insulating > cabling > sheathing > testing > packing
+P-10,H05VV-F 5G1.5 mm²,CENELEC HD 21.5,cord,5,1.5,Cu,5,PVC,none,PVC,100,2,1.66,0.7,3.06,8.26,,,1.1,10.5,13.3,drawing > bunching > insulating > cabling > sheathing > testing > packing
+P-11,Cu/XLPE/PVC 0.6/1 kV 4×16 mm²,IEC 60502-1,power,4,16,Cu,2,XLPE,none,PVC,1000,4,4.96,0.7,6.36,15.4,,,1.5,18.4,1.15,drawing > stranding > insulating > curing > cabling > sheathing > testing > packing
+P-12,Cu/XLPE/PVC 0.6/1 kV 4×35 mm²,IEC 60502-1,power,4,35,Cu,2,XLPE,none,PVC,1000,3,7.34,0.9,9.14,22.13,,,1.8,25.7,0.524,drawing > stranding > insulating > curing > cabling > sheathing > testing > packing
+P-13,Cu/XLPE/PVC 0.6/1 kV 4×70 mm²,IEC 60502-1,power,4,70,Cu,2,XLPE,none,PVC,1000,2,10.38,1.1,12.58,30.46,,,2.1,34.7,0.268,drawing > stranding > insulating > curing > cabling > sheathing > testing > packing
+P-14,Cu/XLPE/PVC 0.6/1 kV 1×240 mm²,IEC 60502-1,power,1,240,Cu,2,XLPE,none,PVC,500,1,19.23,1.7,22.63,22.63,,,1.8,26.2,0.0754,drawing > stranding > insulating > curing > sheathing > testing > packing
+P-15,Al/XLPE/PVC 0.6/1 kV 4×95 mm²,IEC 60502-1,power,4,95,Al,2,XLPE,none,PVC,1000,2,12.1,1.1,14.3,34.6,,,2.2,39,0.32,drawing > stranding > insulating > curing > cabling > sheathing > testing > packing
+P-16,Al/XLPE/PVC 0.6/1 kV 4×150 mm²,IEC 60502-1,power,4,150,Al,2,XLPE,none,PVC,500,1,15.2,1.4,18,43.56,,,2.5,48.6,0.206,drawing > stranding > insulating > curing > cabling > sheathing > testing > packing
+P-17,Cu/XLPE/SWA/PVC 0.6/1 kV 4×25 mm²,IEC 60502-1,armoured,4,25,Cu,2,XLPE,SWA,PVC,500,2,6.21,0.9,8.01,19.37,1.6,42,1.9,28.4,0.727,drawing > stranding > insulating > curing > cabling > bedding > armouring > sheathing > testing > packing
+P-18,Cu/XLPE/SWA/PVC 0.6/1 kV 4×50 mm²,IEC 60502-1,armoured,4,50,Cu,2,XLPE,SWA,PVC,500,1,8.78,1,10.78,26.08,2,44,2.1,36.3,0.387,drawing > stranding > insulating > curing > cabling > bedding > armouring > sheathing > testing > packing
