@@ -6,7 +6,8 @@ import Coverage from "./figures/Coverage.astro";
 import OzoneDiagram from "./figures/OzoneDiagram.astro";
 import OzonePhotos from "./figures/OzonePhotos.astro";
 import OzoneResults from "./figures/OzoneResults.astro";
-import DzcodShots from "./figures/DzcodShots.astro";
+import DafterShots from "./figures/DafterShots.astro";
+import DafterStack from "./figures/DafterStack.astro";
 
 interface Props {
   name: Figure;
@@ -21,4 +22,6 @@ const { name, lang, compact = false } = Astro.props;
 {name === "ozone-diagram" && <OzoneDiagram lang={lang} compact={compact} />}
 {name === "ozone-photos" && <OzonePhotos lang={lang} />}
 {name === "ozone-results" && <OzoneResults lang={lang} />}
-{name === "dzcod-shots" && <DzcodShots lang={lang} compact={compact} />}
+{name === "dafter-stack" && <DafterStack lang={lang} compact={compact} />}
+{name === "dafter-core-shots" && <DafterShots lang={lang} set="core" />}
+{name === "dafter-cod-shots" && <DafterShots lang={lang} set="cod" />}

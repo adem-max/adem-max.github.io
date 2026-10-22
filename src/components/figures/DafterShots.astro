@@ -1,0 +1,134 @@
+---
+// Screenshots of the DafterDZ demo sites (fictional companies, so they are safe to publish;
+// phone numbers were masked when they were taken). "core" shows the producer demos,
+// "cod" the online shop with its order life cycle.
+import type { Lang } from "../../i18n/ui.ts";
+
+interface Props {
+  lang: Lang;
+  set: "core" | "cod";
+}
+const { lang, set } = Astro.props;
+const en = lang === "en";
+
+const SHOTS: Record<"core" | "cod", [string, string, string][]> = {
+  core: [
+    ["core-home.png", "The food producer's home page: today's sales, orders to deliver, work in progress, what to buy, overdue invoices", "La page d'accueil du producteur alimentaire : ventes du jour, commandes à livrer, fabrication en cours, achats à faire, factures en retard"],
+    ["core-cost.png", "Cost price of each product from its recipe at the latest purchase prices, with the margin", "Coût de revient de chaque produit d'après sa recette aux derniers prix d'achat, avec la marge"],
+    ["core-invoice.png", "A legal invoice (Facture DZ) from the clothing workshop, under the IFU regime", "Une facture légale (Facture DZ) de l'atelier de confection, au régime de l'IFU"],
+    ["core-sales.png", "Sales per month and per product, with the change from the month before", "Ventes par mois et par produit, avec l'évolution sur le mois précédent"],
+  ],
+  cod: [
+    ["orders.png", "The online shop's orders, by status", "Les commandes de la boutique en ligne, par statut"],
+    ["settlement.png", "A courier's cash settlement, matched parcel by parcel and booked in the accounts", "Le versement d'un transporteur, rapproché colis par colis et passé en comptabilité"],
+    ["report.png", "Return rate by product", "Taux de retour par produit"],
+  ],
+};
+
+const MAIN = en
+  ? ["New", "Confirmed", "Prepared", "Shipped", "Delivered", "Settled"]
+  : ["Nouvelle", "Confirmée", "Préparée", "Expédiée", "Livrée", "Réglée"];
+const SIDE = en ? { unreachable: "Unreachable", returned: "Returned", cancelled: "Cancelled" } : { unreachable: "Injoignable", returned: "Retournée", cancelled: "Annulée" };
+
+const W = 960;
+const step = W / MAIN.length;
+const cx = (i: number) => step * i + step / 2;
+const boxW = step - 26;
+const caption = (s: [string, string, string]) => (en ? s[1] : s[2].replace(/ :/g, " :"));
+---
+
+<div class="shots-wrap">
+  {
+    set === "cod" && (
+      <div class="flow-wrap">
+      <svg class="flow" viewBox={`0 0 ${W} 150`} role="img" aria-label={en ? "Order life cycle" : "Cycle de vie d'une commande"}>
+        <defs>
+          <marker id="flow-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" class="arrow" />
+          </marker>
+        </defs>
+        {MAIN.map((s, i) => (
+          <g>
+            <rect x={cx(i) - boxW / 2} y="20" width={boxW} height="40" rx="8" class:list={["node", { end: i === MAIN.length - 1 }]} />
+            <text x={cx(i)} y="45" class:list={["lbl", { end: i === MAIN.length - 1 }]} text-anchor="middle">
+              {s}
+            </text>
+            {i < MAIN.length - 1 && <line x1={cx(i) + boxW / 2 + 2} x2={cx(i + 1) - boxW / 2 - 4} y1="40" y2="40" class="edge" marker-end="url(#flow-arr)" />}
+          </g>
+        ))}
+        <rect x={cx(0) - boxW / 2} y="92" width={boxW} height="34" rx="8" class="side" />
+        <text x={cx(0)} y="114" class="lbl small" text-anchor="middle">{SIDE.unreachable}</text>
+        <line x1={cx(0)} x2={cx(0)} y1="60" y2="90" class="edge dash" marker-end="url(#flow-arr)" />
+        <rect x={cx(2) - boxW / 2} y="92" width={boxW} height="34" rx="8" class="side" />
+        <text x={cx(2)} y="114" class="lbl small" text-anchor="middle">{SIDE.cancelled}</text>
+        <line x1={cx(1)} x2={cx(2) - boxW / 2} y1="60" y2="106" class="edge dash" marker-end="url(#flow-arr)" />
+        <rect x={cx(4) - boxW / 2} y="92" width={boxW} height="34" rx="8" class="side" />
+        <text x={cx(4)} y="114" class="lbl small" text-anchor="middle">{SIDE.returned}</text>
+        <line x1={cx(3)} x2={cx(4) - boxW / 2} y1="60" y2="106" class="edge dash" marker-end="url(#flow-arr)" />
+      </svg>
+      </div>
+    )
+  }
+  <div class:list={["shots", set]}>
+    {
+      SHOTS[set].map((s) => (
+        <figure>
+          <img src={`/img/dafterdz/${s[0]}`} alt={caption(s)} width="1440" height="900" loading="lazy" />
+          <figcaption>{caption(s)}</figcaption>
+        </figure>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .flow {
+    width: 100%;
+    height: auto;
+    display: block;
+    font-family: var(--f-body);
+    margin-bottom: 28px;
+  }
+  .node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+  .node.end { fill: var(--ink); }
+  .side { fill: var(--bg-alt); stroke: var(--rule); }
+  .lbl { font-size: 15px; font-weight: 600; fill: var(--ink); }
+  .lbl.end { fill: var(--bg); }
+  .lbl.small { font-size: 13px; font-weight: 500; fill: var(--muted); }
+  .edge { stroke: var(--accent); stroke-width: 2; }
+  .edge.dash { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 4 3; }
+  .arrow { fill: var(--accent); }
+  .shots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .shots.cod figure:first-child {
+    grid-column: 1 / -1;
+  }
+  figure {
+    margin: 0;
+  }
+  img {
+    width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid var(--rule);
+  }
+  figcaption {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+  @media (max-width: 640px) {
+    .shots {
+      grid-template-columns: 1fr;
+    }
+    .flow {
+      min-width: 620px;
+    }
+    .flow-wrap {
+      overflow-x: auto;
+    }
+  }
+</style>

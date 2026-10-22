@@ -3,7 +3,15 @@
 
 import type { Lang } from "../i18n/ui.ts";
 
-export type Figure = "ozone-diagram" | "ozone-photos" | "ozone-results" | "gantt" | "coverage" | "dzcod-shots";
+export type Figure =
+  | "ozone-diagram"
+  | "ozone-photos"
+  | "ozone-results"
+  | "gantt"
+  | "coverage"
+  | "dafter-stack"
+  | "dafter-core-shots"
+  | "dafter-cod-shots";
 
 export type Section = {
   heading: string;
@@ -22,13 +30,14 @@ export type Project = {
   status: string;
   meta: [string, string][];
   sections: Section[];
-  link?: { label: string; href: string };
+  links?: { label: string; href: string }[];
   /** Card image, under public/. Plant tools use a drawn figure instead. */
   cover?: { src: string; alt: string };
   coverFigure?: Figure;
 };
 
-const DZ_REPO = "https://github.com/adem-max/dz-cod";
+const CORE_REPO = "https://github.com/adem-max/dafter-core";
+const COD_REPO = "https://github.com/adem-max/dafter-cod";
 
 const en: Project[] = [
   {
@@ -198,50 +207,83 @@ const en: Project[] = [
     ],
   },
   {
-    slug: "dz-cod",
-    title: "dz-cod",
-    tagline: "A cash-on-delivery back office for Algerian online sellers, built as an app on ERPNext.",
+    slug: "dafterdz",
+    title: "DafterDZ",
+    tagline: "An ERP for Algerian small businesses, built on ERPNext: workshops, food producers and online sellers, each set up in one command and run from one vendor hub.",
     summary:
-      "A cash-on-delivery back office for Algerian online sellers, built on ERPNext: order workflow, courier settlement, returns, and features switched on per client.",
-    tags: ["Software", "ERP"],
-    status: "Open source · launching",
+      "An ERP for Algerian small businesses, built on ERPNext: legal invoices and SCF accounting, costing and stock for producers, cash on delivery for online sellers, and a hub that sets up and bills every client.",
+    tags: ["Software", "ERP", "Product"],
+    status: "Version 0.4 · preparing launch",
     meta: [
       ["Role", "Founder, designer and developer"],
       ["When", "2026"],
-      ["Built with", "Python, Frappe v16, ERPNext v16, MariaDB, JavaScript"],
-      ["Code", "github.com/adem-max/dz-cod"],
+      ["Built with", "Python, Frappe v16, ERPNext v16, MariaDB, JavaScript, GitHub Actions"],
+      ["Code", "Two public repositories; the vendor hub is private"],
     ],
-    link: { label: "View the code on GitHub", href: DZ_REPO },
-    coverFigure: "dzcod-shots",
+    links: [
+      { label: "Core on GitHub", href: CORE_REPO },
+      { label: "Online sales on GitHub", href: COD_REPO },
+    ],
+    coverFigure: "dafter-stack",
     sections: [
       {
         heading: "The problem",
         body: [
-          "Most online shops in Algeria sell through Instagram and Facebook and get paid in cash on delivery. Orders are confirmed by phone, a large share are refused at the door, and courier companies pay the cash back in batches. Spreadsheets and generic ERPs model none of that.",
+          "Algerian small businesses (food producers, clothing workshops, online shops) run on notebooks, Excel and generic software that knows nothing of Algerian invoices, tax regimes or the SCF chart of accounts. ERPNext can do all of it, but it takes weeks of setup before it fits an Algerian business.",
+          "From January 2027 the rules tighten: accounting software sold in Algeria must come with a signed publisher's commitment, and the books must be handed over on request.",
         ],
       },
       {
-        heading: "What it does",
-        list: [
-          "An order workflow from new to confirmed, prepared, shipped, delivered and settled, with unreachable, returned and cancelled along the way.",
-          "Stock reserved when an order is confirmed; shipping fees by wilaya.",
-          "Hand-over to the courier, return inspection, and the courier's cash settlement, with what each courier still owes.",
-          "Daily reports, and optional features switched on per client.",
-        ],
-        figure: "dzcod-shots",
-      },
-      {
-        heading: "Design choices",
-        list: [
-          "Built on ERPNext rather than from scratch: accounting, stock and users come for free, and sellers can grow into the full ERP.",
-          "The order life cycle is a standard ERPNext workflow, so it can be changed without code.",
-          "Optional features are set per client in the server's configuration, which clients can't edit.",
-        ],
-      },
-      {
-        heading: "How I checked it",
+        heading: "What it is",
         body: [
-          "Over ninety automated tests, unit and integration, run on a real ERPNext site. A backup-and-restore drill, and a demo shop that loads in a couple of minutes.",
+          "Three apps on top of an ERPNext that is never edited. A client gets the core, and the online-sales pack if they sell online. A private hub, the vendor's own site, manages every client.",
+        ],
+        figure: "dafter-stack",
+        list: [
+          "Core, for every client: setup in one command (French, Algerian dinar, Algerian chart of accounts), templates for food and cosmetics and for clothing, the IFU, auto-entrepreneur and régime réel tax regimes with VAT per rate, legal invoices and delivery notes, an Excel import workbook checked before anything is created, the 69 wilayas, and daily off-site backups with a restore test.",
+          "Online sales, an add-on: the cash-on-delivery order workflow, couriers and returns, and the courier's cash settlement booked in the accounts. Direct sales to shops and wholesalers work alongside it.",
+          "The vendor hub: clients, packs and options, monthly invoices through ERPNext subscriptions, the list of clients who are late, and buttons that create a client's site, switch its features and suspend it when it isn't paid.",
+        ],
+      },
+      {
+        heading: "For producers",
+        body: [
+          "Each user lands on a home page for their role: today's sales, orders to deliver, work in progress, the materials under their reorder level and overdue invoices. The reports a workshop needs are one click away: the cost price of each product from its recipe at today's prices, what to produce, what to buy, the stock value per warehouse, and sales per month.",
+        ],
+        figure: "dafter-core-shots",
+      },
+      {
+        heading: "Accounting and compliance",
+        list: [
+          "Every ledger line has a journal, and the entries export in the FEC layout with a hash, so an accountant's software can import them.",
+          "An audit trail records the user, IP address and browser on every validation, cancellation and later change.",
+          "The ledger can't be rewritten and accounting documents can't be deleted. Yearly archives are kept with their SHA-256 hash for the ten years the law requires.",
+          "Draft SCF statements (balance sheet and income statement), a year-end close and the accountant's closing file. The statements stay marked as drafts until an accountant validates them.",
+        ],
+      },
+      {
+        heading: "For online sellers",
+        list: [
+          "An order goes from new to confirmed, prepared, shipped, delivered and settled, with unreachable, returned and cancelled along the way. Stock is reserved on confirmation.",
+          "The parcel stays in a courier warehouse until it is delivered. Delivery makes the invoice; a return goes back to stock after inspection.",
+          "Shipping fees by wilaya, a courier connector for Yalidine, and webhooks for automation.",
+        ],
+        figure: "dafter-cod-shots",
+      },
+      {
+        heading: "How it's built",
+        list: [
+          "What every client needs goes in the core. The core never depends on the add-ons; they plug into it, so a workshop's site carries nothing it doesn't use.",
+          "The three apps share one version number, and an add-on refuses to run on an older core.",
+          "Every design decision is written down with its reason, in each repository.",
+          "Over 250 automated tests (110 core, 121 online sales, 22 hub). Every push runs the linters and all the suites on a fresh ERPNext site on GitHub.",
+          "Three demo companies, a food producer, a clothing workshop and an online shop, load with 13 weeks of history in one command.",
+        ],
+      },
+      {
+        heading: "Where it stands",
+        body: [
+          "Version 0.4 was released in the three repositories on 22 October 2026. Before the first clients go live, an accountant has to validate the statements, the IFU rates and the stamp duty, and the courier connector has to be checked against a real account.",
         ],
       },
     ],
@@ -416,50 +458,83 @@ const fr: Project[] = [
     ],
   },
   {
-    slug: "dz-cod",
-    title: "dz-cod",
-    tagline: "Un back-office de paiement à la livraison pour les vendeurs en ligne algériens, construit comme une application sur ERPNext.",
+    slug: "dafterdz",
+    title: "DafterDZ",
+    tagline: "Un ERP pour les petites entreprises algériennes, construit sur ERPNext : ateliers, producteurs alimentaires et vendeurs en ligne, chacun installé en une commande et géré depuis un même hub éditeur.",
     summary:
-      "Un back-office de paiement à la livraison pour les vendeurs en ligne algériens, sur ERPNext : circuit des commandes, règlements des transporteurs, retours, et fonctions activées client par client.",
-    tags: ["Logiciel", "ERP"],
-    status: "Open source · en lancement",
+      "Un ERP pour les petites entreprises algériennes, sur ERPNext : factures légales et comptabilité SCF, coûts et stock pour les producteurs, paiement à la livraison pour les vendeurs en ligne, et un hub qui installe et facture chaque client.",
+    tags: ["Logiciel", "ERP", "Produit"],
+    status: "Version 0.4 · en préparation du lancement",
     meta: [
       ["Rôle", "Fondateur, concepteur et développeur"],
       ["Quand", "2026"],
-      ["Technologies", "Python, Frappe v16, ERPNext v16, MariaDB, JavaScript"],
-      ["Code", "github.com/adem-max/dz-cod"],
+      ["Technologies", "Python, Frappe v16, ERPNext v16, MariaDB, JavaScript, GitHub Actions"],
+      ["Code", "Deux dépôts publics ; le hub éditeur est privé"],
     ],
-    link: { label: "Voir le code sur GitHub", href: DZ_REPO },
-    coverFigure: "dzcod-shots",
+    links: [
+      { label: "Le cœur sur GitHub", href: CORE_REPO },
+      { label: "La vente en ligne sur GitHub", href: COD_REPO },
+    ],
+    coverFigure: "dafter-stack",
     sections: [
       {
         heading: "Le problème",
         body: [
-          "La plupart des boutiques en ligne algériennes vendent sur Instagram et Facebook et sont payées à la livraison. Les commandes sont confirmées par téléphone, une grande part est refusée à la porte, et les transporteurs reversent l'argent par lots. Ni les tableurs ni les ERP génériques ne savent gérer cela.",
+          "Les petites entreprises algériennes (producteurs alimentaires, ateliers de confection, boutiques en ligne) tournent sur des cahiers, Excel et des logiciels génériques qui ignorent la facture algérienne, les régimes fiscaux et le plan comptable SCF. ERPNext sait tout faire, mais il faut des semaines de paramétrage avant qu'il colle à une entreprise algérienne.",
+          "À partir de janvier 2027, les règles se durcissent : un logiciel comptable vendu en Algérie doit être livré avec un engagement signé de l'éditeur, et la comptabilité doit pouvoir être remise sur demande.",
         ],
       },
       {
-        heading: "Ce qu'il fait",
-        list: [
-          "Un circuit de commande : nouvelle, confirmée, préparée, expédiée, livrée, réglée, avec injoignable, retournée et annulée en chemin.",
-          "Stock réservé à la confirmation ; frais de livraison par wilaya.",
-          "Remise au transporteur, contrôle des retours, et versement des transporteurs, avec ce que chacun doit encore.",
-          "Rapports quotidiens, et fonctions optionnelles activées client par client.",
-        ],
-        figure: "dzcod-shots",
-      },
-      {
-        heading: "Choix de conception",
-        list: [
-          "Construit sur ERPNext plutôt que de zéro : comptabilité, stock et utilisateurs sont déjà là, et le vendeur peut grandir vers l'ERP complet.",
-          "Le cycle de vie des commandes est un workflow ERPNext standard, modifiable sans code.",
-          "Les fonctions optionnelles sont réglées par client dans la configuration du serveur, que les clients ne peuvent pas modifier.",
-        ],
-      },
-      {
-        heading: "Comment je l'ai vérifié",
+        heading: "Ce que c'est",
         body: [
-          "Plus de quatre-vingt-dix tests automatiques, unitaires et d'intégration, sur un vrai site ERPNext. Un exercice de sauvegarde et de restauration, et une boutique de démonstration qui se charge en quelques minutes.",
+          "Trois applications au-dessus d'un ERPNext jamais modifié. Un client reçoit le cœur, et le pack vente en ligne s'il vend en ligne. Un hub privé, le site de l'éditeur, gère tous les clients.",
+        ],
+        figure: "dafter-stack",
+        list: [
+          "Le cœur, pour chaque client : mise en place en une commande (français, dinar algérien, plan comptable algérien), modèles pour l'alimentaire et la cosmétique et pour la confection, les régimes IFU, auto-entrepreneur et réel avec la TVA par taux, factures et bons de livraison légaux, un classeur Excel d'import vérifié avant toute création, les 69 wilayas, et des sauvegardes quotidiennes hors du serveur avec un test de restauration.",
+          "La vente en ligne, en option : le circuit des commandes en paiement à la livraison, les transporteurs et les retours, et le versement du transporteur passé en comptabilité. Les ventes directes aux magasins et aux grossistes fonctionnent à côté.",
+          "Le hub éditeur : clients, packs et options, factures mensuelles par les abonnements d'ERPNext, la liste des clients en retard, et des boutons qui créent le site d'un client, activent ses fonctions et le suspendent s'il ne paie pas.",
+        ],
+      },
+      {
+        heading: "Pour les producteurs",
+        body: [
+          "Chaque utilisateur arrive sur une page d'accueil propre à son rôle : ventes du jour, commandes à livrer, fabrication en cours, matières sous leur seuil et factures en retard. Les rapports dont un atelier a besoin sont à un clic : le coût de revient de chaque produit d'après sa recette aux prix du jour, ce qu'il faut produire, ce qu'il faut acheter, la valeur du stock par entrepôt et les ventes par mois.",
+        ],
+        figure: "dafter-core-shots",
+      },
+      {
+        heading: "Comptabilité et conformité",
+        list: [
+          "Chaque ligne d'écriture a un journal, et les écritures s'exportent au format FEC avec une empreinte, pour que le logiciel du comptable les importe.",
+          "Une piste d'audit enregistre l'utilisateur, l'adresse IP et le navigateur à chaque validation, annulation et modification ultérieure.",
+          "Les écritures ne peuvent pas être réécrites ni les pièces comptables supprimées. Les archives annuelles sont conservées avec leur empreinte SHA-256 pendant les dix ans exigés par la loi.",
+          "Des états SCF en projet (bilan et compte de résultat), une clôture d'exercice et le dossier de clôture du comptable. Les états restent marqués « projet » jusqu'à leur validation par un comptable.",
+        ],
+      },
+      {
+        heading: "Pour les vendeurs en ligne",
+        list: [
+          "Une commande passe de nouvelle à confirmée, préparée, expédiée, livrée et réglée, avec injoignable, retournée et annulée en chemin. Le stock est réservé à la confirmation.",
+          "Le colis reste dans un entrepôt « chez le transporteur » jusqu'à la livraison. La livraison fait la facture ; un retour revient en stock après contrôle.",
+          "Frais de livraison par wilaya, un connecteur transporteur pour Yalidine, et des webhooks pour l'automatisation.",
+        ],
+        figure: "dafter-cod-shots",
+      },
+      {
+        heading: "Comment c'est construit",
+        list: [
+          "Ce dont chaque client a besoin va dans le cœur. Le cœur ne dépend jamais des options ; elles s'y branchent, et le site d'un atelier n'embarque rien qu'il n'utilise pas.",
+          "Les trois applications partagent un même numéro de version, et une option refuse de tourner sur un cœur plus ancien.",
+          "Chaque décision de conception est écrite avec sa raison, dans chaque dépôt.",
+          "Plus de 250 tests automatiques (110 pour le cœur, 121 pour la vente en ligne, 22 pour le hub). Chaque envoi sur GitHub lance les contrôles de code et toutes les suites sur un site ERPNext neuf.",
+          "Trois entreprises de démonstration, un producteur alimentaire, un atelier de confection et une boutique en ligne, se chargent avec 13 semaines d'historique en une commande.",
+        ],
+      },
+      {
+        heading: "Où en est le projet",
+        body: [
+          "La version 0.4 est sortie dans les trois dépôts le 22 octobre 2026. Avant la mise en service des premiers clients, un comptable doit valider les états, les taux de l'IFU et le droit de timbre, et le connecteur transporteur doit être vérifié sur un vrai compte.",
         ],
       },
     ],

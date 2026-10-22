@@ -24,7 +24,17 @@ const demoFigures = new Set(["gantt", "coverage"]);
       <p class="tags">{p.tags.map((tag) => <span class="tag">{tag}</span>)}</p>
       <h1>{p.title}</h1>
       <p class="tagline">{p.tagline}</p>
-      {p.link && <p><a class="btn" href={p.link.href} rel="noopener">{p.link.label} ↗</a></p>}
+      {
+        p.links && (
+          <p class="head-links">
+            {p.links.map((l) => (
+              <a class="btn" href={l.href} rel="noopener">
+                {l.label} ↗
+              </a>
+            ))}
+          </p>
+        )
+      }
     </header>
 
     <div class="wrap layout">
@@ -111,6 +121,11 @@ const demoFigures = new Set(["gantt", "coverage"]);
     color: var(--muted);
     max-width: 58ch;
     margin: 18px 0 24px;
+  }
+  .head-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
   }
   .layout {
     display: grid;

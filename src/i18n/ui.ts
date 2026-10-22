@@ -69,7 +69,7 @@ export const copy: Record<Lang, Copy> = {
             "Tested desktop apps and ERP extensions that replace fragile spreadsheets and macros, built to run where IT allows nothing: no admin rights, no network.",
           links: [
             { label: "Scheduling tool", slug: "scheduler" },
-            { label: "dz-cod", slug: "dz-cod" },
+            { label: "DafterDZ", slug: "dafterdz" },
           ],
         },
         {
@@ -97,6 +97,12 @@ export const copy: Record<Lang, Copy> = {
           where: "Cable manufacturer · Ain Defla",
           body:
             "Daily planning across several production sections. Material availability checks with the production teams. Built the planning tools shown above.",
+        },
+        {
+          when: "2026 – now",
+          role: "Founder, DafterDZ",
+          where: "Own project · Algeria",
+          body: "An ERP for Algerian small businesses, built on ERPNext: three apps, a vendor hub, over 250 automated tests.",
         },
         {
           when: "2024",
@@ -191,7 +197,7 @@ export const copy: Record<Lang, Copy> = {
             "Des applications de bureau testées et des extensions d'ERP qui remplacent des tableurs et des macros fragiles, conçues pour tourner là où l'informatique ne permet rien : sans droits admin, sans réseau.",
           links: [
             { label: "Outil d'ordonnancement", slug: "scheduler" },
-            { label: "dz-cod", slug: "dz-cod" },
+            { label: "DafterDZ", slug: "dafterdz" },
           ],
         },
         {
@@ -219,6 +225,12 @@ export const copy: Record<Lang, Copy> = {
           where: "Fabricant de câbles · Aïn Defla",
           body:
             "Planification quotidienne sur plusieurs sections de production. Vérification de la disponibilité des matières avec les équipes de production. Conception des outils de planification présentés plus haut.",
+        },
+        {
+          when: "2026 – aujourd'hui",
+          role: "Fondateur, DafterDZ",
+          where: "Projet personnel · Algérie",
+          body: "Un ERP pour les petites entreprises algériennes, construit sur ERPNext : trois applications, un hub éditeur, plus de 250 tests automatiques.",
         },
         {
           when: "2024",

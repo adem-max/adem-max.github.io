@@ -1,0 +1,145 @@
+---
+// How DafterDZ is put together: one client site is ERPNext plus the core app, plus the
+// online-sales app when sold; the vendor's private hub sets up, switches and bills each site.
+import type { Lang } from "../../i18n/ui.ts";
+
+interface Props {
+  lang: Lang;
+  compact?: boolean;
+}
+const { lang, compact = false } = Astro.props;
+const en = lang === "en";
+
+const T = en
+  ? {
+      title: "How DafterDZ is built",
+      site: "One client site",
+      cod: ["Online sales", "Add-on pack: cash on delivery, couriers, returns, settlements"],
+      core: ["DafterDZ Core", "Every client: setup, sectors, tax regimes, legal invoices,", "SCF accounting, producer reports, backups"],
+      erp: ["ERPNext", "Stock, sales, purchases, manufacturing, accounting: never edited"],
+      frappe: ["Frappe framework", ""],
+      hub: ["Vendor hub", "Private, one per vendor"],
+      hubItems: ["Clients", "Packs and options", "Monthly invoices", "Overdue list"],
+      arrows: ["Creates the site", "Switches features", "Suspends if unpaid"],
+    }
+  : {
+      title: "Architecture de DafterDZ",
+      site: "Un site client",
+      cod: ["Vente en ligne", "Pack optionnel : paiement à la livraison, transporteurs, retours, versements"],
+      core: ["DafterDZ Core", "Chaque client : mise en place, secteurs, régimes fiscaux, factures légales,", "comptabilité SCF, rapports de production, sauvegardes"],
+      erp: ["ERPNext", "Stock, ventes, achats, fabrication, comptabilité : jamais modifié"],
+      frappe: ["Framework Frappe", ""],
+      hub: ["Hub éditeur", "Privé, un par éditeur"],
+      hubItems: ["Clients", "Packs et options", "Factures mensuelles", "Clients en retard"],
+      arrows: ["Crée le site", "Règle les options", "Suspend si impayé"],
+    };
+const nb = (s: string) => (en ? s : s.replace(/ :/g, " :"));
+---
+
+<figure class:list={["stack", { compact }]}>
+  <svg viewBox="0 0 960 420" role="img" aria-label={T.title}>
+    <defs>
+      <marker id={compact ? "st-arr-c" : "st-arr"} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0L10 5L0 10z" class="arr"></path>
+      </marker>
+    </defs>
+
+    {!compact && <text x="40" y="34" class="site">{T.site}</text>}
+    {!compact && <path d="M40 46 H560" class="bracket" />}
+
+    <!-- online sales add-on -->
+    <rect x="40" y="62" width="520" height={compact ? 76 : 70} rx="10" class="cod"></rect>
+    <text x="64" y={compact ? 112 : 92} class="t cod-t">{T.cod[0]}</text>
+    {!compact && <text x="64" y="116" class="s">{nb(T.cod[1])}</text>}
+
+    <!-- core -->
+    <rect x="40" y="144" width="520" height="102" rx="10" class="core"></rect>
+    <text x="64" y={compact ? 208 : 178} class="t core-t">{T.core[0]}</text>
+    {!compact && <text x="64" y="204" class="s on-core">{nb(T.core[1])}</text>}
+    {!compact && <text x="64" y="224" class="s on-core">{T.core[2]}</text>}
+
+    <!-- ERPNext -->
+    <rect x="40" y="254" width="520" height="74" rx="10" class="erp"></rect>
+    <text x="64" y={compact ? 302 : 286} class="t">{T.erp[0]}</text>
+    {!compact && <text x="64" y="310" class="s">{nb(T.erp[1])}</text>}
+
+    <!-- Frappe -->
+    <rect x="40" y="336" width="520" height="52" rx="10" class="frappe"></rect>
+    <text x="64" y="369" class="t small">{T.frappe[0]}</text>
+
+    <!-- hub -->
+    <rect x="690" y="96" width="240" height="232" rx="12" class="hub"></rect>
+    <text x="714" y={compact ? 150 : 132} class="t">{T.hub[0]}</text>
+    {!compact && <text x="714" y="154" class="s">{T.hub[1]}</text>}
+    {
+      !compact &&
+        T.hubItems.map((it, i) => (
+          <g>
+            <circle cx="720" cy={190 + i * 30} r="4" class="dot" />
+            <text x="734" y={195 + i * 30} class="s strong">
+              {it}
+            </text>
+          </g>
+        ))
+    }
+    {
+      compact &&
+        T.hubItems.slice(0, 3).map((_, i) => <rect x="714" y={182 + i * 34} width={150 - i * 28} height="16" rx="8" class="bar" />)
+    }
+
+    <!-- hub acts on the site -->
+    {
+      [128, 200, 276].map((y, i) => (
+        <g>
+          <path d={`M688 ${y} H${572}`} class="link" marker-end={`url(#${compact ? "st-arr-c" : "st-arr"})`} />
+          {!compact && (
+            <text x="630" y={y - 8} class="a" text-anchor="middle">
+              {T.arrows[i]}
+            </text>
+          )}
+        </g>
+      ))
+    }
+  </svg>
+</figure>
+
+<style>
+  .stack {
+    margin: 0;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    font-family: var(--f-body);
+  }
+  .site { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--muted); }
+  .bracket { stroke: var(--rule); stroke-width: 2; }
+  .cod { fill: color-mix(in srgb, var(--accent) 14%, var(--surface)); stroke: var(--accent); stroke-width: 2; }
+  .core { fill: var(--ink); }
+  .erp { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+  .frappe { fill: var(--bg-alt); stroke: var(--rule); }
+  .hub { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  .t { font-size: 20px; font-weight: 700; fill: var(--ink); }
+  .compact .t { font-size: 34px; }
+  .t.small { font-size: 16px; font-weight: 600; fill: var(--muted); }
+  .compact .t.small { font-size: 22px; }
+  .cod-t { fill: var(--accent-text); }
+  .core-t { fill: var(--bg); }
+  .s { font-size: 13px; fill: var(--muted); }
+  .s.on-core { fill: color-mix(in srgb, var(--bg) 80%, transparent); }
+  .s.strong { fill: var(--text); font-weight: 500; }
+  .dot { fill: var(--accent); }
+  .bar { fill: var(--bg-alt); }
+  .link { stroke: var(--accent); stroke-width: 2; }
+  .arr { fill: var(--accent); }
+  .a { font-size: 11px; font-weight: 600; fill: var(--accent-text); }
+  @media (max-width: 640px) {
+    .stack:not(.compact) {
+      overflow-x: auto;
+    }
+    .stack:not(.compact) svg {
+      min-width: 640px;
+    }
+  }
+</style>
