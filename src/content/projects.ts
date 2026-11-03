@@ -11,7 +11,10 @@ export type Figure =
   | "coverage"
   | "dafter-stack"
   | "dafter-core-shots"
-  | "dafter-cod-shots";
+  | "dafter-cod-shots"
+  | "scheduler-shots"
+  | "material-shot"
+  | "productivity-shot";
 
 export type Section = {
   heading: string;
@@ -139,6 +142,13 @@ const en: Project[] = [
         figure: "gantt",
       },
       {
+        heading: "A day with it",
+        body: [
+          "The screens below follow the app's real steps, redrawn on a fictional plant. Machine names, products and orders all come from the demo data, not from the plant.",
+        ],
+        figure: "scheduler-shots",
+      },
+      {
         heading: "Design choices",
         list: [
           "Reconcile, don't rebuild. Each import keeps every planning decision and changes only what the ERP changed.",
@@ -190,13 +200,15 @@ const en: Project[] = [
         body: [
           "Works out the raw material that a list of orders, all open orders, or the published schedule still needs. It checks that against stock, including approved substitutes, and shows when each material will run short and how many days of cover are left. It replaced a macro.",
         ],
-        figure: "coverage",
+        figure: "material-shot",
       },
       {
         heading: "Productivity report",
         body: [
           "Instead of a fixed rate, each machine-day gets a rate that follows what it actually made: the sizes, their lengths, each size's standard speed, and the time lost changing over. Productivity is the actual output against that rate. It's an Excel workbook with Power Query and formulas, no macros, and it runs on Excel 2019.",
+          "On the demo plant below, a machine that ran many short jobs looks weak against its top speed but is close to its target once the mix is counted.",
         ],
+        figure: "productivity-shot",
       },
       {
         heading: "How I checked it",
@@ -390,6 +402,13 @@ const fr: Project[] = [
         figure: "gantt",
       },
       {
+        heading: "Une journée avec l'outil",
+        body: [
+          "Les écrans ci-dessous suivent les vraies étapes de l'application, redessinées sur une usine fictive. Noms de machines, produits et ordres viennent tous des données de démonstration, pas de l'usine.",
+        ],
+        figure: "scheduler-shots",
+      },
+      {
         heading: "Choix de conception",
         list: [
           "Rapprocher plutôt que reconstruire : chaque import conserve toutes les décisions de planification et ne change que ce que l'ERP a changé.",
@@ -441,13 +460,15 @@ const fr: Project[] = [
         body: [
           "Calcule la matière première dont une liste d'ordres, tous les ordres ouverts ou le planning publié ont encore besoin. Il la compare au stock, substitutions autorisées comprises, et montre quand chaque matière va manquer et combien de jours de couverture il reste. Il a remplacé une macro.",
         ],
-        figure: "coverage",
+        figure: "material-shot",
       },
       {
         heading: "Rapport de productivité",
         body: [
           "Au lieu d'une cadence fixe, chaque journée-machine reçoit une cadence qui suit ce qu'elle a réellement produit : les sections, leurs longueurs, la vitesse standard de chacune et le temps perdu aux changements. La productivité, c'est la production réelle rapportée à cette cadence. C'est un classeur Excel avec Power Query et des formules, sans macros, compatible Excel 2019.",
+          "Sur l'usine de démonstration ci-dessous, une machine qui a enchaîné des ordres courts paraît faible face à sa vitesse maximale, mais proche de son objectif une fois le mix pris en compte.",
         ],
+        figure: "productivity-shot",
       },
       {
         heading: "Comment je l'ai vérifié",

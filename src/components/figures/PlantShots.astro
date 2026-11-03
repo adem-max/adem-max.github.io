@@ -1,0 +1,1110 @@
+---
+// The plant tools' screens, redrawn on the demo plant: the scheduler's daily workflow, the
+// material planner's check and the productivity report. They follow the real apps' layout and
+// steps but use only the demo model's vocabulary, so no employer column, code or report shows.
+import type { Lang } from "../../i18n/ui.ts";
+import { areaCounts, areas, areaUnits, at, holds, importSummary, kpis, materialCheck, productivity, queue, unitName } from "../../lib/plantScreens.ts";
+
+interface Props {
+  lang: Lang;
+  set: "scheduler" | "material" | "productivity";
+}
+const { lang, set } = Astro.props;
+const en = lang === "en";
+const loc = en ? "en-GB" : "fr-FR";
+
+const FR_AREA: Record<string, string> = {
+  "Wire drawing": "Tréfilage",
+  Conductor: "Conducteur",
+  Insulation: "Isolation",
+  Assembly: "Assemblage",
+  Sheathing: "Gainage",
+  "Test & pack": "Essais et emballage",
+};
+const FR_UNIT: Record<string, string> = {
+  "EQ-01": "Tréfileuse de fil machine",
+  "EQ-02": "Tréfileuse multifils 1",
+  "EQ-03": "Tréfileuse multifils 2",
+  "EQ-04": "Toronneuse tubulaire 19 fils",
+  "EQ-05": "Toronneuse rigide 61 fils",
+  "EQ-06": "Câbleuse en faisceau 1",
+  "EQ-07": "Câbleuse en faisceau 2",
+  "EQ-08": "Ligne d'extrusion 60 mm",
+  "EQ-09": "Ligne d'extrusion 90 mm",
+  "EQ-10": "Salle de réticulation",
+  "EQ-11": "Assembleuse de conducteurs",
+  "EQ-12": "Assembleuse à berceau",
+  "EQ-13": "Ligne d'armure",
+  "EQ-14": "Ligne de gainage 90 mm",
+  "EQ-15": "Ligne de gainage 120 mm",
+  "EQ-16": "Plateforme d'essais",
+  "EQ-17": "Ligne de mise en couronnes",
+  "EQ-18": "Ligne de rebobinage",
+};
+const FR_REASON: Record<string, string> = {
+  "Customer changed the order": "Le client a modifié la commande",
+  "Equipment maintenance": "Maintenance de l'équipement",
+  "Material short": "Matière manquante",
+};
+const FR_MATERIAL: Record<string, string> = {
+  "MAT-CU-ROD": "Fil machine cuivre 8 mm",
+  "MAT-AL-ROD": "Fil machine aluminium 9,5 mm",
+  "MAT-XLPE": "Mélange PRC (réticulation silane)",
+  "MAT-PVC-INS": "Mélange PVC isolation",
+  "MAT-PVC-SHE": "Mélange PVC gaine",
+  "MAT-STEEL": "Fil d'armure acier galvanisé",
+};
+const area = (a: string) => (en ? a : FR_AREA[a] ?? a);
+const unit = (id: string) => (en ? unitName(id) : FR_UNIT[id] ?? unitName(id));
+const reason = (r: string) => (en ? r : FR_REASON[r] ?? r);
+const num = (n: number, d = 0) => n.toLocaleString(loc, { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (n: number | null) => (n === null ? "—" : `${num(n * 100)}${en ? "%" : " %"}`);
+const when = (d: Date) => d.toLocaleString(loc, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+const day = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString(loc, { day: "numeric", month: "short", timeZone: "UTC" });
+const today = at(0).toLocaleDateString(loc, { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const isoDay = at(0).toISOString().slice(0, 10);
+
+const t = en
+  ? {
+      scheduler: "Scheduler",
+      planner: "Material planner",
+      onHold: "On hold",
+      kpis: "KPIs",
+      import: "Import…",
+      export: "Export ▾",
+      lastImport: `Last import ${when(at(-0.8))} · erp_jobs_${isoDay}.xlsx`,
+      saved: "All changes saved",
+      jobs: "jobs",
+      days: "d",
+      ends: "ends",
+      new: "new",
+      held: "on hold",
+      late: "late",
+      cols: ["#", "Setup", "Order", "Product", "Remaining", "Start", "End"],
+      selected: "1 selected",
+      tools: ["⤒ Top", "↑ Up", "↓ Down", "⤓ Bottom", "Move to machine…", "Hold…"],
+      more: (n: number) => `${n} more jobs below`,
+      stats: ["Jobs", "Run time", "Setups", "Ends"],
+      importTitle: "Import the ERP export",
+      importRows: (s: ReturnType<typeof importSummary>) => [
+        ["Open orders in the export", s.orders],
+        ["New, added at the end of their machine's queue", s.added],
+        ["Already planned, place in the queue kept", s.updated],
+        ["Finished, taken off the plan", s.finished],
+      ],
+      keptTitle: "Kept from your plan",
+      kept: (s: ReturnType<typeof importSummary>) => [`${s.holds} holds`, `${s.moves} machine moves`, `${s.typedRates} typed rates`],
+      cancel: "Cancel",
+      apply: "Apply import",
+      holdCols: ["Order", "Product", "Machine", "Reason", "Due", ""],
+      release: "Release",
+      holdHead: (n: number) => `${n} jobs taken out of the schedule`,
+      sheetTitle: (a: string) => `Demo Cable Works · ${a} · schedule from ${today}`,
+      sheetCols: ["#", "Order", "Product", "Remaining (m)", "Start", "End", "Note"],
+      note: "Check the drum size",
+      tiles: ["Open orders", "Due this week", "Late at the end of the plan", "Orders on hold"],
+      loadTitle: "Load per area, in days of work per machine",
+      matTabs: ["Inputs", "Open orders", "Schedule", "Substitutions"],
+      matTiles: ["Orders checked", "Covered", "Short", "Materials short"],
+      matCols: ["Material", "Open need", "On hand", "On order", "Arrives", "Cover", ""],
+      covered: "covered",
+      short: "short",
+      shortTitle: "Short orders, first due first",
+      shortCols: ["Order", "Product", "Due", "Waits for", "Missing"],
+      prodTitle: (a: string) => `Productivity · ${a} · ${today}`,
+      prodCols: ["Machine", "Jobs", "Product changes", "Made", "Target for the mix", "Against the mix", "Against one fixed rate"],
+      prodNote: "Target for the mix: each job's standard speed for the time it ran, less changeovers. Fixed rate: the machine's top speed over the same hours.",
+      sheet: "Sheet",
+    }
+  : {
+      scheduler: "Ordonnancement",
+      planner: "Planificateur de matières",
+      onHold: "Bloqués",
+      kpis: "Indicateurs",
+      import: "Importer…",
+      export: "Exporter ▾",
+      lastImport: `Dernier import ${when(at(-0.8))} · erp_jobs_${isoDay}.xlsx`,
+      saved: "Modifications enregistrées",
+      jobs: "ordres",
+      days: "j",
+      ends: "fin",
+      new: "nouveau",
+      held: "bloqué",
+      late: "en retard",
+      cols: ["#", "Réglage", "Ordre", "Produit", "Reste", "Début", "Fin"],
+      selected: "1 sélectionné",
+      tools: ["⤒ En haut", "↑ Monter", "↓ Descendre", "⤓ En bas", "Changer de machine…", "Bloquer…"],
+      more: (n: number) => `${n} ordres de plus en dessous`,
+      stats: ["Ordres", "Temps de marche", "Réglages", "Fin"],
+      importTitle: "Importer l'extraction de l'ERP",
+      importRows: (s: ReturnType<typeof importSummary>) => [
+        ["Ordres ouverts dans l'extraction", s.orders],
+        ["Nouveaux, ajoutés en fin de file de leur machine", s.added],
+        ["Déjà planifiés, place dans la file conservée", s.updated],
+        ["Terminés, retirés du planning", s.finished],
+      ],
+      keptTitle: "Conservé de votre planning",
+      kept: (s: ReturnType<typeof importSummary>) => [`${s.holds} blocages`, `${s.moves} changements de machine`, `${s.typedRates} cadences saisies`],
+      cancel: "Annuler",
+      apply: "Appliquer l'import",
+      holdCols: ["Ordre", "Produit", "Machine", "Motif", "Échéance", ""],
+      release: "Débloquer",
+      holdHead: (n: number) => `${n} ordres retirés du planning`,
+      sheetTitle: (a: string) => `Demo Cable Works · ${a} · planning à partir du ${today}`,
+      sheetCols: ["#", "Ordre", "Produit", "Reste (m)", "Début", "Fin", "Note"],
+      note: "Vérifier la taille du touret",
+      tiles: ["Ordres ouverts", "À livrer cette semaine", "En retard en fin de planning", "Ordres bloqués"],
+      loadTitle: "Charge par atelier, en jours de travail par machine",
+      matTabs: ["Données", "Ordres ouverts", "Planning", "Substitutions"],
+      matTiles: ["Ordres contrôlés", "Couverts", "En manque", "Matières en manque"],
+      matCols: ["Matière", "Besoin ouvert", "En stock", "Commandé", "Arrivée", "Couverture", ""],
+      covered: "couvert",
+      short: "manque",
+      shortTitle: "Ordres en manque, par échéance",
+      shortCols: ["Ordre", "Produit", "Échéance", "Attend", "Manque"],
+      prodTitle: (a: string) => `Productivité · ${a} · ${today}`,
+      prodCols: ["Machine", "Ordres", "Changements de produit", "Produit", "Objectif selon le mix", "Selon le mix", "Selon une cadence fixe"],
+      prodNote: "Objectif selon le mix : la vitesse standard de chaque ordre pendant le temps où il a tourné, moins les changements. Cadence fixe : la vitesse maximale de la machine sur les mêmes heures.",
+      sheet: "Feuille",
+    };
+
+// The scheduler shows the conductor area, on its busiest unit.
+const AREA = "Conductor";
+const units = areaUnits(AREA);
+const active = [...units].sort((a, b) => b.jobs - a.jobs)[0];
+const q = queue(active.id);
+const SHOWN = 8;
+const counts = areaCounts();
+const held = holds();
+const imp = importSummary();
+const k = kpis();
+const maxLoad = Math.max(...k.load.map((l) => l.days));
+const sheetUnits = units.filter((u) => u.jobs > 0).map((u) => ({ ...u, rows: queue(u.id).rows.slice(0, 3) }));
+const mat = materialCheck();
+const prod = productivity(AREA);
+const letters = "ABCDEFGH".split("");
+
+const CAPTIONS = en
+  ? [
+      ["Import", "Each day the ERP's export is compared with the plan already in place. Only what changed is applied; holds, machine moves and typed rates stay."],
+      ["Queue", "Each machine's jobs in order, with the changeovers, dated starts and ends, and late jobs flagged. The planner reorders, moves or holds jobs here."],
+      ["Holds", "A held job leaves the queue with its reason, so the next job moves up and the machine doesn't wait. Released, it goes back to its place."],
+      ["Export", "One workbook per section, laid out to be read on the floor."],
+      ["KPIs", "Open orders, what's due, what will be late, and the load on each area."],
+    ]
+  : [
+      ["Import", "Chaque jour, l'extraction de l'ERP est comparée au planning en place. Seul ce qui a changé est appliqué ; blocages, changements de machine et cadences saisies restent."],
+      ["File", "Les ordres de chaque machine dans l'ordre, avec les réglages, les débuts et fins datés et les retards signalés. Le planificateur réordonne, déplace ou bloque ici."],
+      ["Blocages", "Un ordre bloqué quitte la file avec son motif : l'ordre suivant avance et la machine n'attend pas. Débloqué, il reprend sa place."],
+      ["Export", "Un classeur par section, mis en page pour être lu en atelier."],
+      ["Indicateurs", "Ordres ouverts, ce qui est à livrer, ce qui sera en retard et la charge de chaque atelier."],
+    ];
+const CAP_MATERIAL = en
+  ? "The material check: stock goes to orders by priority, then due date. Each short order shows the material it waits for."
+  : "Le contrôle des matières : le stock va aux ordres par priorité, puis par échéance. Chaque ordre en manque montre la matière qu'il attend.";
+const CAP_PROD = en
+  ? "The productivity report: the same day judged against one fixed rate per machine, and against the rate its product mix allows."
+  : "Le rapport de productivité : la même journée jugée contre une cadence fixe par machine, et contre la cadence que permet son mix de produits.";
+---
+
+<div class:list={["shots", set]}>
+  {
+    set === "scheduler" && (
+      <>
+        <figure class="shot">
+          <div class="win" aria-hidden="true">
+            <div class="win-bar"><i /><i /><i /><span>{t.scheduler} · Demo Cable Works</span></div>
+            <div class="win-body dim">
+              <div class="top">
+                <b>{t.scheduler}</b>
+                <span class="tabs">{areas().slice(0, 4).map((a) => <span class="tab">{area(a)}</span>)}</span>
+              </div>
+              <div class="dialog">
+                <h4>{t.importTitle}</h4>
+                <p class="file">erp_jobs_{isoDay}.xlsx</p>
+                <dl>
+                  {t.importRows(imp).map(([label, value]) => (
+                    <div>
+                      <dt>{label}</dt>
+                      <dd>{num(value as number)}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p class="kept-title">{t.keptTitle}</p>
+                <p class="kept">{t.kept(imp).map((s) => <span class="chip">{s}</span>)}</p>
+                <p class="btns">
+                  <span class="btn-ui">{t.cancel}</span>
+                  <span class="btn-ui primary">{t.apply}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>1 · {CAPTIONS[0][0]}.</b> {CAPTIONS[0][1]}</figcaption>
+        </figure>
+
+        <figure class="shot wide">
+          <div class="win" aria-hidden="true">
+            <div class="win-bar"><i /><i /><i /><span>{t.scheduler} · Demo Cable Works</span></div>
+            <div class="win-body">
+              <div class="top">
+                <b>{t.scheduler}</b>
+                <span class="tabs">
+                  {areas().map((a) => (
+                    <span class:list={["tab", { on: a === AREA }]}>
+                      {area(a)} <em>{counts[a] ?? 0}</em>
+                    </span>
+                  ))}
+                  <span class="tab">
+                    {t.onHold} <em class="hold">{held.length}</em>
+                  </span>
+                  <span class="tab">{t.kpis}</span>
+                </span>
+                <span class="acts">
+                  <span class="btn-ui primary">{t.import}</span>
+                  <span class="btn-ui">{t.export}</span>
+                </span>
+              </div>
+              <div class="status">
+                <span>{t.lastImport}</span>
+                <span class="ok">{t.saved}</span>
+              </div>
+              <div class="work">
+                <nav class="units">
+                  {units.map((u) => (
+                    <div class:list={["unit", { on: u.id === active.id }]}>
+                      <span class="u-top">
+                        <b>{unit(u.id)}</b>
+                        <em>{u.jobs}</em>
+                      </span>
+                      <span class="u-sub">
+                        {num(u.days, 1)} {t.days}
+                        {u.end && ` · ${t.ends} ${day(u.end.toISOString().slice(0, 10))}`}
+                      </span>
+                      {(u.added > 0 || u.held > 0) && (
+                        <span class="u-flags">
+                          {u.added > 0 && <span class="chip new">{u.added} {t.new}{!en && u.added > 1 ? "x" : ""}</span>}
+                          {u.held > 0 && <span class="chip hold">{u.held} {t.held}{!en && u.held > 1 ? "s" : ""}</span>}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+                <div class="queue">
+                  <div class="q-head">
+                    <h4>{unit(active.id)}</h4>
+                    <span class="stats">
+                      <span><small>{t.stats[0]}</small>{q.rows.length}</span>
+                      <span><small>{t.stats[1]}</small>{num(q.runHours / 24, 1)} {t.days}</span>
+                      <span><small>{t.stats[2]}</small>{q.setups} · {num(q.setupHours, 1)} h</span>
+                      <span><small>{t.stats[3]}</small>{q.end && when(q.end)}</span>
+                    </span>
+                  </div>
+                  <div class="toolbar">
+                    <span>{t.selected}</span>
+                    {t.tools.map((tool) => <span class="btn-ui sm">{tool}</span>)}
+                  </div>
+                  <div class="scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th class="c-box" />
+                          {t.cols.map((c, i) => <th class:list={{ num: i === 4 }}>{c}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {q.rows.slice(0, SHOWN).map((r, i) => (
+                          <tr class:list={{ sel: i === 2, late: r.late }}>
+                            <td class="c-box"><span class:list={["box", { on: i === 2 }]} /></td>
+                            <td class="muted">{r.n}</td>
+                            <td>{r.setup && <span class="chip setup">⚙ {r.setup} min</span>}</td>
+                            <td class="mono">
+                              {r.order}
+                              {r.isNew && <span class="chip new">{t.new}</span>}
+                            </td>
+                            <td class="strong">{r.product}</td>
+                            <td class="num">{num(r.remaining)} {r.unit}</td>
+                            <td>{when(r.start)}</td>
+                            <td>
+                              {when(r.end)}
+                              {r.late && <span class="chip late">{t.late}</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {q.rows.length > SHOWN && <p class="more">{t.more(q.rows.length - SHOWN)}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>2 · {CAPTIONS[1][0]}.</b> {CAPTIONS[1][1]}</figcaption>
+        </figure>
+
+        <figure class="shot">
+          <div class="win" aria-hidden="true">
+            <div class="win-bar"><i /><i /><i /><span>{t.scheduler} · {t.onHold}</span></div>
+            <div class="win-body">
+              <div class="q-head">
+                <h4>{t.onHold}</h4>
+                <span class="muted small">{t.holdHead(held.length)}</span>
+              </div>
+              <div class="scroll">
+                <table>
+                  <thead>
+                    <tr>{t.holdCols.map((c) => <th>{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {held.slice(0, 6).map((h) => (
+                      <tr>
+                        <td class="mono">{h.order}</td>
+                        <td class="strong wrap">{h.product}</td>
+                        <td class="wrap">{unit(h.unit)}</td>
+                        <td><span class="chip hold">{reason(h.reason)}</span></td>
+                        <td>{day(h.due)}</td>
+                        <td><span class="link-ui">{t.release}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>3 · {CAPTIONS[2][0]}.</b> {CAPTIONS[2][1]}</figcaption>
+        </figure>
+
+        <figure class="shot">
+          <div class="win" aria-hidden="true">
+            <div class="win-bar"><i /><i /><i /><span>{area(AREA)}_{isoDay}.xlsx</span></div>
+            <div class="win-body sheet">
+              <div class="scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="rn" />
+                      {letters.slice(0, 7).map((l) => <th>{l}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="rn">1</td>
+                      <td colspan="7" class="s-title">{t.sheetTitle(area(AREA))}</td>
+                    </tr>
+                    <tr>
+                      <td class="rn">2</td>
+                      {t.sheetCols.map((c) => <td class="s-head">{c}</td>)}
+                    </tr>
+                    {(() => {
+                      let row = 3;
+                      return sheetUnits.flatMap((u, ui) => [
+                        <tr>
+                          <td class="rn">{row++}</td>
+                          <td colspan="7" class="s-unit">{unit(u.id)}</td>
+                        </tr>,
+                        ...u.rows.map((r, ri) => (
+                          <tr>
+                            <td class="rn">{row++}</td>
+                            <td>{r.n}</td>
+                            <td class="mono">{r.order}</td>
+                            <td class="wrap">{r.product}</td>
+                            <td class="num">{num(r.remaining)}</td>
+                            <td>{when(r.start)}</td>
+                            <td>{when(r.end)}</td>
+                            <td>{ui === 0 && ri === 1 ? t.note : ""}</td>
+                          </tr>
+                        )),
+                      ]);
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+              <div class="sheet-tabs">
+                {areas().slice(0, 5).map((a) => <span class:list={{ on: a === AREA }}>{area(a)}</span>)}
+              </div>
+            </div>
+          </div>
+          <figcaption><b>4 · {CAPTIONS[3][0]}.</b> {CAPTIONS[3][1]}</figcaption>
+        </figure>
+
+        <figure class="shot">
+          <div class="win" aria-hidden="true">
+            <div class="win-bar"><i /><i /><i /><span>{t.scheduler} · {t.kpis}</span></div>
+            <div class="win-body">
+              <div class="tiles">
+                {[k.open, k.dueThisWeek, k.late, k.held].map((v, i) => (
+                  <div class:list={["tile", { warn: i === 2 && v > 0 }]}>
+                    <small>{t.tiles[i]}</small>
+                    <b>{v}</b>
+                  </div>
+                ))}
+              </div>
+              <p class="sub-title">{t.loadTitle}</p>
+              <div class="bars">
+                {k.load.map((l) => (
+                  <div class="bar-row">
+                    <span>{area(l.area)}</span>
+                    <span class="bar"><i style={`width:${(l.days / maxLoad) * 100}%`} /></span>
+                    <span class="num">{num(l.days, 1)} {t.days}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <figcaption><b>5 · {CAPTIONS[4][0]}.</b> {CAPTIONS[4][1]}</figcaption>
+        </figure>
+      </>
+    )
+  }
+
+  {
+    set === "material" && (
+      <figure class="shot wide">
+        <div class="win" aria-hidden="true">
+          <div class="win-bar"><i /><i /><i /><span>{t.planner} · Demo Cable Works</span></div>
+          <div class="win-body">
+            <div class="top">
+              <b>{t.planner}</b>
+              <span class="tabs">{t.matTabs.map((x, i) => <span class:list={["tab", { on: i === 1 }]}>{x}</span>)}</span>
+            </div>
+            <div class="tiles">
+              {[mat.orders, mat.covered, mat.short, mat.materialsShort].map((v, i) => (
+                <div class:list={["tile", { ok: i === 1, warn: (i === 2 || i === 3) && v > 0 }]}>
+                  <small>{t.matTiles[i]}</small>
+                  <b>{v}</b>
+                </div>
+              ))}
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>{t.matCols.map((c, i) => <th class:list={{ num: i >= 1 && i <= 5 && i !== 4 }}>{c}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {mat.materials.map((m) => (
+                    <tr>
+                      <td class="strong wrap">{en ? m.name : FR_MATERIAL[m.id] ?? m.name}</td>
+                      <td class="num">{num(m.need)} kg</td>
+                      <td class="num">{num(m.onHand)} kg</td>
+                      <td class="num">{m.onOrder ? `${num(m.onOrder)} kg` : "—"}</td>
+                      <td>{m.expected ? day(m.expected) : "—"}</td>
+                      <td class="num">{num(m.coverDays)} {t.days}</td>
+                      <td><span class:list={["chip", m.short ? "late" : "ok"]}>{m.short ? t.short : t.covered}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="sub-title">{t.shortTitle}</p>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>{t.shortCols.map((c, i) => <th class:list={{ num: i === 4 }}>{c}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {mat.shortOrders.slice(0, 5).map((s) => (
+                    <tr>
+                      <td class="mono">{s.order}</td>
+                      <td class="strong wrap">{s.product}</td>
+                      <td>{day(s.due)}</td>
+                      <td class="wrap">{en ? mat.materials.find((m) => m.id === s.material)!.name : FR_MATERIAL[s.material]}</td>
+                      <td class="num">{num(s.shortKg)} kg</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <figcaption>{CAP_MATERIAL}</figcaption>
+      </figure>
+    )
+  }
+
+  {
+    set === "productivity" && (
+      <figure class="shot wide">
+        <div class="win" aria-hidden="true">
+          <div class="win-bar"><i /><i /><i /><span>productivity_{isoDay}.xlsx</span></div>
+          <div class="win-body sheet">
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="rn" />
+                    {letters.slice(0, 7).map((l) => <th>{l}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="rn">1</td>
+                    <td colspan="7" class="s-title">{t.prodTitle(area(AREA))}</td>
+                  </tr>
+                  <tr>
+                    <td class="rn">2</td>
+                    {t.prodCols.map((c) => <td class="s-head">{c}</td>)}
+                  </tr>
+                  {prod.map((r, i) => (
+                    <tr>
+                      <td class="rn">{i + 3}</td>
+                      <td class="wrap">{unit(r.id)}</td>
+                      <td class="num">{r.jobs}</td>
+                      <td class="num">{r.changes}</td>
+                      <td class="num">{num(r.made)} {r.unit}</td>
+                      <td class="num">{num(r.target)} {r.unit}</td>
+                      <td class="num strong">{pct(r.mixPct)}</td>
+                      <td class="num muted">{pct(r.fixedPct)}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td class="rn">{prod.length + 3}</td>
+                    <td colspan="7" class="s-note">{t.prodNote}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sheet-tabs">
+              <span class="on">{area(AREA)}</span>
+              <span>{t.sheet} 2</span>
+            </div>
+          </div>
+        </div>
+        <figcaption>{CAP_PROD}</figcaption>
+      </figure>
+    )
+  }
+</div>
+
+<style>
+  .shots {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    --ui-line: var(--rule);
+    --ui-head: var(--bg-alt);
+    --ui-sel: color-mix(in srgb, var(--accent) 12%, transparent);
+    --ui-ok: #1f7a4d;
+    --ui-ok-bg: color-mix(in srgb, #1f7a4d 12%, transparent);
+  }
+  :global(:root[data-theme="dark"]) .shots {
+    --ui-ok: #6fd3a0;
+    --ui-ok-bg: color-mix(in srgb, #6fd3a0 14%, transparent);
+  }
+  .shot {
+    margin: 0;
+    min-width: 0;
+  }
+  figcaption {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  figcaption b {
+    color: var(--ink);
+  }
+
+  /* The app window */
+  .win {
+    border: 1px solid var(--ui-line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .win-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    background: var(--ui-head);
+    border-bottom: 1px solid var(--ui-line);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .win-bar i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ui-line);
+  }
+  .win-bar span {
+    margin-left: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .win-body {
+    padding: 12px;
+    position: relative;
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--ui-line);
+  }
+  .top > b {
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tab {
+    padding: 3px 9px;
+    border-radius: 6px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .tab.on {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .tab em {
+    font-style: normal;
+    font-size: 10.5px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--ui-head);
+    color: var(--muted);
+    margin-left: 2px;
+  }
+  .tab.on em {
+    background: color-mix(in srgb, var(--bg) 22%, transparent);
+    color: var(--bg);
+  }
+  .tab em.hold {
+    background: var(--ui-sel);
+    color: var(--accent-text);
+  }
+  .acts {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+  .btn-ui {
+    display: inline-block;
+    padding: 3px 10px;
+    border: 1px solid var(--ui-line);
+    border-radius: 6px;
+    white-space: nowrap;
+    color: var(--text);
+    background: var(--surface);
+  }
+  .btn-ui.primary {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+  }
+  .btn-ui.sm {
+    padding: 1px 7px;
+    font-size: 11px;
+  }
+  .link-ui {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .status {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .status .ok {
+    color: var(--ui-ok);
+  }
+  .work {
+    display: grid;
+    gap: 12px;
+  }
+  .units {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 6px;
+  }
+  .unit {
+    display: grid;
+    gap: 2px;
+    padding: 7px 9px;
+    border: 1px solid var(--ui-line);
+    border-radius: 8px;
+  }
+  .unit.on {
+    border-color: var(--ink);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .u-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .u-top b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .u-top em {
+    font-style: normal;
+    color: var(--muted);
+  }
+  .u-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .u-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .queue {
+    min-width: 0;
+  }
+  .q-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  h4 {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .stats {
+    display: flex;
+    gap: 14px;
+  }
+  .stats span {
+    display: grid;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .stats small {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .toolbar > span:first-child {
+    margin-right: 4px;
+  }
+  .scroll {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--ui-head);
+    padding: 5px 7px;
+    white-space: nowrap;
+  }
+  td {
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--ui-line);
+    white-space: nowrap;
+  }
+  .num {
+    text-align: right;
+  }
+  .mono {
+    font-family: var(--f-mono);
+    font-size: 11px;
+  }
+  .strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  td.wrap {
+    white-space: normal;
+    min-width: 110px;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .small {
+    font-size: 11px;
+  }
+  tr.sel td {
+    background: var(--ui-sel);
+  }
+  tr.late td:first-child {
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .c-box {
+    width: 22px;
+  }
+  .box {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border: 1.5px solid var(--muted);
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .box.on {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .chip {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 0 6px;
+    border-radius: 999px;
+    margin-left: 4px;
+    white-space: nowrap;
+    background: var(--ui-head);
+    color: var(--muted);
+  }
+  td > .chip:first-child,
+  .u-flags .chip,
+  .kept .chip {
+    margin-left: 0;
+  }
+  .chip.new {
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+    color: var(--ink);
+  }
+  .chip.hold,
+  .chip.late {
+    background: var(--ui-sel);
+    color: var(--accent-text);
+  }
+  .chip.ok {
+    background: var(--ui-ok-bg);
+    color: var(--ui-ok);
+  }
+  .chip.setup {
+    background: transparent;
+    border: 1px dashed var(--ui-line);
+  }
+  .more {
+    margin: 8px 0 0;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Import dialog over a dimmed app */
+  .win-body.dim {
+    min-height: 330px;
+    background: var(--ui-head);
+  }
+  .dim .top {
+    opacity: 0.45;
+  }
+  .dialog {
+    position: absolute;
+    inset: 46px 16px auto;
+    max-width: 380px;
+    margin-inline: auto;
+    padding: 14px 16px;
+    border: 1px solid var(--ui-line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .file {
+    margin: 2px 0 10px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  dl {
+    margin: 0;
+    display: grid;
+    gap: 4px;
+  }
+  dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  dt {
+    color: var(--text);
+  }
+  dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .kept-title {
+    margin: 10px 0 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .kept {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+  }
+  .btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin: 12px 0 0;
+  }
+
+  /* Spreadsheet look for the exports and reports */
+  .sheet {
+    padding: 0;
+  }
+  .sheet th {
+    text-align: center;
+    font-weight: 500;
+    border-right: 1px solid var(--ui-line);
+  }
+  .sheet td {
+    border-right: 1px solid var(--ui-line);
+  }
+  .sheet .rn {
+    width: 28px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--ui-head);
+    font-size: 10.5px;
+  }
+  .s-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .s-head {
+    white-space: normal;
+    vertical-align: bottom;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--ink);
+  }
+  .s-unit {
+    font-weight: 700;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .s-note {
+    white-space: normal;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .sheet-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 8px;
+    border-top: 1px solid var(--ui-line);
+    background: var(--ui-head);
+    font-size: 11px;
+    overflow: hidden;
+  }
+  .sheet-tabs span {
+    padding: 4px 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .sheet-tabs .on {
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  /* KPI and check tiles */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 10px 0 12px;
+  }
+  .tile {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid var(--ui-line);
+    border-radius: 8px;
+  }
+  .tile small {
+    font-size: 10.5px;
+    color: var(--muted);
+    line-height: 1.25;
+  }
+  .tile b {
+    font-size: 20px;
+    color: var(--ink);
+  }
+  .tile.warn b {
+    color: var(--accent-text);
+  }
+  .tile.ok b {
+    color: var(--ui-ok);
+  }
+  .sub-title {
+    margin: 12px 0 6px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .bars {
+    display: grid;
+    gap: 6px;
+  }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr) 46px;
+    gap: 8px;
+    align-items: center;
+  }
+  .bar {
+    height: 10px;
+    border-radius: 3px;
+    background: var(--ui-head);
+    overflow: hidden;
+  }
+  .bar i {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+    border-radius: 3px;
+  }
+
+  @media (max-width: 640px) {
+    .tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .acts {
+      margin-left: 0;
+    }
+    .win-body.dim {
+      min-height: 360px;
+    }
+  }
+</style>

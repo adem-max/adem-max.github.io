@@ -14,7 +14,7 @@ const t = copy[lang];
 const all = projects[lang];
 const next = all[(all.findIndex((x) => x.slug === p.slug) + 1) % all.length];
 const home = getRelativeLocaleUrl(lang, "");
-const demoFigures = new Set(["gantt", "coverage"]);
+const demoFigures = new Set(["gantt", "coverage", "scheduler-shots", "material-shot", "productivity-shot"]);
 ---
 
 <Base lang={lang} path={`work/${p.slug}`} title={`${p.title} · Adem Benlechheb`} description={p.tagline}>

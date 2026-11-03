@@ -8,6 +8,7 @@ import OzonePhotos from "./figures/OzonePhotos.astro";
 import OzoneResults from "./figures/OzoneResults.astro";
 import DafterShots from "./figures/DafterShots.astro";
 import DafterStack from "./figures/DafterStack.astro";
+import PlantShots from "./figures/PlantShots.astro";
 
 interface Props {
   name: Figure;
@@ -25,3 +26,6 @@ const { name, lang, compact = false } = Astro.props;
 {name === "dafter-stack" && <DafterStack lang={lang} compact={compact} />}
 {name === "dafter-core-shots" && <DafterShots lang={lang} set="core" />}
 {name === "dafter-cod-shots" && <DafterShots lang={lang} set="cod" />}
+{name === "scheduler-shots" && <PlantShots lang={lang} set="scheduler" />}
+{name === "material-shot" && <PlantShots lang={lang} set="material" />}
+{name === "productivity-shot" && <PlantShots lang={lang} set="productivity" />}
