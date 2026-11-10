@@ -52,17 +52,19 @@ const canonical = new URL(getRelativeLocaleUrl(lang, path), Astro.site);
   </head>
   <body>
     <a class="skip" href="#main">{lang === "en" ? "Skip to content" : "Aller au contenu"}</a>
-    <header class="top">
+    <header class="top" data-header>
       <div class="wrap bar">
         <a class="name" href={home}>
           <span class="mark" aria-hidden="true">AB</span>
           <span>Adem Benlechheb</span>
         </a>
         <nav aria-label={lang === "en" ? "Main" : "Principal"}>
-          <a class="nav-link" href={`${home}#work`}>{t.nav.work}</a>
-          <a class="nav-link" href={`${home}#experience`}>{t.nav.experience}</a>
-          <a class="nav-link" href={`${home}#hire`}>{t.nav.hire}</a>
-          <a class="nav-link" href={`${home}#contact`}>{t.nav.contact}</a>
+          <div class="nav-links" id="nav-links">
+            <a class="nav-link" href={`${home}#work`}>{t.nav.work}</a>
+            <a class="nav-link" href={`${home}#experience`}>{t.nav.experience}</a>
+            <a class="nav-link" href={`${home}#hire`}>{t.nav.hire}</a>
+            <a class="nav-link" href="#contact">{t.nav.contact}</a>
+          </div>
           <a class="chip" href={getRelativeLocaleUrl(other, path)} hreflang={other} lang={other}>
             {other.toUpperCase()}<span class="sr-only"> · {languages[other]}</span>
           </a>
@@ -83,24 +85,36 @@ const canonical = new URL(getRelativeLocaleUrl(lang, path), Astro.site);
                 stroke-linejoin="round"></path></svg
             >
           </button>
+          <button class="chip menu" type="button" data-menu-toggle aria-controls="nav-links" aria-expanded="false" aria-label={t.nav.menu}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"
+              ><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg
+            >
+          </button>
         </nav>
       </div>
     </header>
     <main id="main">
       <slot />
     </main>
-    <footer class="foot">
-      <div class="wrap foot-grid">
+    <!-- The contact band closes every page, so a case study ends on the same call as the home page. -->
+    <footer id="contact" class="foot" aria-labelledby="contact-title">
+      <div class="wrap foot-main">
         <div>
-          <p class="foot-name">Adem Benlechheb</p>
-          <p>{t.footer.role}</p>
+          <h2 id="contact-title">{t.contact.heading}</h2>
+          <p class="foot-lede">{t.contact.lede}</p>
+          <p class="foot-email"><a href={`mailto:${EMAIL}`}>{EMAIL}</a></p>
         </div>
-        <div class="foot-links">
-          <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
-          <a href={LINKEDIN} rel="me noopener">LinkedIn</a>
-          <a href={GITHUB} rel="me noopener">GitHub</a>
+        <div class="foot-actions">
+          <a class="btn primary" href={`mailto:${EMAIL}`}>{t.contact.email}</a>
+          <a class="btn on-band" href={LINKEDIN} rel="me noopener">LinkedIn</a>
+          <a class="btn on-band" href={GITHUB} rel="me noopener">GitHub</a>
         </div>
-        <p class="foot-note">© {new Date().getFullYear()} · {t.footer.demo}</p>
+      </div>
+      <div class="wrap">
+        <div class="foot-base">
+          <p><strong>Adem Benlechheb</strong> · {t.footer.role}</p>
+          <p>© {new Date().getFullYear()} · {t.footer.demo}</p>
+        </div>
       </div>
     </footer>
     <script is:inline>
@@ -113,6 +127,19 @@ const canonical = new URL(getRelativeLocaleUrl(lang, path), Astro.site);
           localStorage.setItem("theme", dark ? "dark" : "light");
         } catch (e) {}
       });
+      // Small screens: the section links sit behind a menu button.
+      (() => {
+        const header = document.querySelector("[data-header]");
+        const button = document.querySelector("[data-menu-toggle]");
+        if (!header || !button) return;
+        const set = (open) => {
+          header.toggleAttribute("data-open", open);
+          button.setAttribute("aria-expanded", String(open));
+        };
+        button.addEventListener("click", () => set(!header.hasAttribute("data-open")));
+        header.querySelectorAll(".nav-link").forEach((a) => a.addEventListener("click", () => set(false)));
+        document.addEventListener("keydown", (e) => e.key === "Escape" && set(false));
+      })();
     </script>
   </body>
 </html>
@@ -182,6 +209,11 @@ const canonical = new URL(getRelativeLocaleUrl(lang, path), Astro.site);
     font-size: 15px;
     font-weight: 500;
   }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2.4vw, 26px);
+  }
   .nav-link {
     text-decoration: none;
     color: var(--muted);
@@ -218,45 +250,119 @@ const canonical = new URL(getRelativeLocaleUrl(lang, path), Astro.site);
   :global(:root[data-theme="dark"]) .theme .moon {
     display: none;
   }
+  .menu {
+    display: none;
+  }
   @media (max-width: 720px) {
-    .nav-link {
+    nav {
+      gap: 8px;
+    }
+    .menu {
+      display: inline-grid;
+    }
+    .nav-links {
       display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 6px var(--gutter) 14px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule);
+      box-shadow: var(--shadow);
+    }
+    .top[data-open] .nav-links {
+      display: flex;
+    }
+    .nav-link {
+      padding: 12px 0;
+      font-size: 17px;
+      color: var(--ink);
+      border-top: 1px solid var(--rule);
+    }
+    .nav-link:first-child {
+      border-top: 0;
     }
     .name span:last-child {
       font-size: 15px;
     }
   }
-  .foot {
-    border-top: 1px solid var(--rule);
-    padding-block: 40px;
-    font-size: 15px;
-    color: var(--muted);
+  @media (max-width: 360px) {
+    .bar {
+      gap: 8px;
+    }
+    nav {
+      gap: 6px;
+    }
+    .name {
+      gap: 8px;
+    }
+    .name span:last-child {
+      font-size: 14px;
+    }
   }
-  .foot-grid {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 16px 32px;
-    align-items: start;
+  .foot {
+    background: var(--band);
+    color: var(--on-band);
+    font-size: 15px;
   }
   .foot p {
     margin: 0;
   }
-  .foot-name {
-    color: var(--ink);
-    font-weight: 700;
-  }
-  .foot-links {
+  .foot-main {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 22px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    padding-block: clamp(48px, 7vw, 80px);
   }
-  .foot-note {
-    grid-column: 1 / -1;
+  .foot h2 {
+    color: var(--on-band);
+    font-size: clamp(28px, 3.6vw, 40px);
+    font-weight: 700;
+  }
+  .foot-lede {
+    margin-top: 10px !important;
+    font-size: 17px;
+    opacity: 0.85;
+  }
+  .foot-email {
+    margin-top: 6px !important;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .foot a:not(.btn):hover {
+    color: var(--accent);
+  }
+  .foot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .btn.on-band {
+    border-color: color-mix(in srgb, var(--on-band) 45%, transparent);
+    color: var(--on-band);
+  }
+  .btn.on-band:hover {
+    background: var(--on-band);
+    color: var(--band);
+  }
+  .foot-base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 24px;
+    padding-block: 20px 28px;
+    border-top: 1px solid color-mix(in srgb, var(--on-band) 16%, transparent);
     font-size: 13px;
+    color: color-mix(in srgb, var(--on-band) 70%, transparent);
   }
-  @media (max-width: 640px) {
-    .foot-grid {
-      grid-template-columns: 1fr;
-    }
+  .foot-base strong {
+    color: var(--on-band);
+    font-weight: 600;
   }
 </style>

@@ -8,11 +8,17 @@ import { demoPlant, schedule, type Bar } from "../../lib/schedule.ts";
 interface Props {
   lang: Lang;
   compact?: boolean;
+  /** Home-page hero: the full chart on five units, a short legend, and bars that draw in once on load. */
+  hero?: boolean;
 }
-const { lang, compact = false } = Astro.props;
+const { lang, compact = false, hero = false } = Astro.props;
 const en = lang === "en";
 
-const UNITS = compact ? ["EQ-01", "EQ-05", "EQ-07", "EQ-08"] : ["EQ-01", "EQ-04", "EQ-05", "EQ-07", "EQ-08", "EQ-09", "EQ-15"];
+const UNITS = compact
+  ? ["EQ-01", "EQ-05", "EQ-07", "EQ-08"]
+  : hero
+    ? ["EQ-01", "EQ-05", "EQ-07", "EQ-08", "EQ-15"]
+    : ["EQ-01", "EQ-04", "EQ-05", "EQ-07", "EQ-08", "EQ-09", "EQ-15"];
 const FR_NAMES: Record<string, string> = {
   "EQ-01": "Tréfileuse de fil machine",
   "EQ-04": "Toronneuse tubulaire 19 fils",
@@ -101,10 +107,11 @@ const days = Array.from({ length: HOURS / 24 }, (_, i) => {
 const t = en
   ? { title: "Three-day schedule on the demo plant", late: "Ends after its due date", held: "Held", mixed: "Several small orders", shift: "Shifts of 8 h" }
   : { title: "Planning sur trois jours de l'usine de démonstration", late: "Finit après sa date due", held: "Bloqué", mixed: "Plusieurs petits ordres", shift: "Postes de 8 h" };
-const hatch = compact ? "hatch-c" : "hatch";
+// One pattern id per variant, so two charts on a page never share (or hide) a definition.
+const hatch = compact && hero ? "hatch-hc" : compact ? "hatch-c" : hero ? "hatch-h" : "hatch";
 ---
 
-<figure class:list={["gantt", { compact }]}>
+<figure class:list={["gantt", { compact, hero }]}>
   <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t.title}>
     <defs>
       <pattern id={hatch} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -145,9 +152,11 @@ const hatch = compact ? "hatch-c" : "hatch";
         const w = Math.max(x(b.end) - x0 - 2, 3);
         const y = top + row * rowH + (rowH - barH) / 2;
         const label = b.count > 1 ? b.id : w > 150 ? `${b.id} · ${shortName(b.id)}` : b.id;
-        const showLabel = !compact && w >= (b.count > 1 ? 100 : 62);
+        // A held step keeps its slot while other jobs run over it; its label would show through them.
+        const covered = b.held && blocks.some((o) => o !== b && o.unit === b.unit && o.start < b.end && o.end > b.start);
+        const showLabel = !compact && !covered && w >= (b.count > 1 ? 100 : 62);
         return (
-          <g>
+          <g style={hero ? `--at:${Math.round(Math.max(b.start, 0) * 11)}ms` : undefined}>
             <title>{b.title}</title>
             <rect
               x={x0}
@@ -177,10 +186,10 @@ const hatch = compact ? "hatch-c" : "hatch";
             {FAMILY_LABEL[f][en ? 0 : 1]}
           </span>
         ))}
-        <span class="key"><i class="sw mixed" />{t.mixed}</span>
+        {!hero && <span class="key"><i class="sw mixed" />{t.mixed}</span>}
         <span class="key"><i class="sw late" />{t.late}</span>
         <span class="key"><i class="sw held" />{t.held}</span>
-        <span class="key"><i class="sw shift" />{t.shift}</span>
+        {!hero && <span class="key"><i class="sw shift" />{t.shift}</span>}
       </figcaption>
     )
   }
@@ -287,6 +296,34 @@ const hatch = compact ? "hatch-c" : "hatch";
   .sw.late { background: transparent; outline: 3px solid var(--accent); outline-offset: -3px; }
   .sw.held { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, var(--bg-alt) 2px 5px); }
   .sw.shift { width: 2px; height: 14px; border-radius: 0; background: repeating-linear-gradient(var(--muted) 0 3px, transparent 3px 6px); }
+  .gantt.hero figcaption {
+    font-size: 13px;
+    gap: 6px 18px;
+  }
+  /* The hero chart draws itself once, left to right, in schedule order. */
+  @media (prefers-reduced-motion: no-preference) {
+    .gantt.hero .blk {
+      transform-box: fill-box;
+      transform-origin: left center;
+      animation: gantt-grow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      animation-delay: calc(250ms + var(--at, 0ms));
+    }
+    .gantt.hero .blk-label {
+      animation: gantt-fade 0.35s ease-out both;
+      animation-delay: calc(550ms + var(--at, 0ms));
+    }
+  }
+  @keyframes gantt-grow {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+  }
+  @keyframes gantt-fade {
+    from {
+      opacity: 0;
+    }
+  }
   @media (max-width: 640px) {
     .gantt:not(.compact) {
       overflow-x: auto;

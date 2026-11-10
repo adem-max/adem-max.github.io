@@ -34,7 +34,7 @@ export type Project = {
   meta: [string, string][];
   sections: Section[];
   links?: { label: string; href: string }[];
-  /** Card image, under public/. Plant tools use a drawn figure instead. */
+  /** Card image, under public/. Plant tools use a drawn figure instead. With both, the card shows them side by side. */
   cover?: { src: string; alt: string };
   coverFigure?: Figure;
 };
@@ -58,6 +58,7 @@ const en: Project[] = [
       ["Built with", "Cold-plasma ozone generator, Venturi injector, touchless sensing, microcontroller control"],
     ],
     coverFigure: "ozone-diagram",
+    cover: { src: "/img/ozone/unit-front.jpg", alt: "The prototype in the lab" },
     sections: [
       {
         heading: "The problem",
@@ -318,6 +319,7 @@ const fr: Project[] = [
       ["Matériel", "Générateur d'ozone à plasma froid, injecteur Venturi, détection sans contact, commande par microcontrôleur"],
     ],
     coverFigure: "ozone-diagram",
+    cover: { src: "/img/ozone/unit-front.jpg", alt: "Le prototype au laboratoire" },
     sections: [
       {
         heading: "Le problème",
