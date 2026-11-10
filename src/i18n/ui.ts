@@ -13,17 +13,17 @@ export const CV_HREF = "/cv/adem-benlechheb-cv-en.pdf";
 
 type Link = { label: string; slug: string };
 type Track = { id: "field" | "software" | "planning"; title: string; body: string; links: Link[] };
-type Job = { when: string; role: string; where: string; body: string };
+type Job = { when: string; role: string; where: string; body: string; current?: boolean };
 
 export type Copy = {
   meta: { title: string; description: string };
-  nav: { work: string; experience: string; hire: string; contact: string; theme: string };
-  hero: { eyebrow: string; title: string; lede: string; cv: string; hire: string };
+  nav: { work: string; experience: string; hire: string; contact: string; theme: string; menu: string };
+  hero: { eyebrow: string; title: string; lede: string; cv: string; hire: string; chart: string; chartLink: string };
   stats: [string, string][];
-  tracks: { eyebrow: string; heading: string; items: Track[] };
-  work: { eyebrow: string; heading: string; note: string; read: string };
-  experience: { eyebrow: string; heading: string; items: Job[] };
-  hire: { eyebrow: string; heading: string; lede: string; items: [string, string][]; cta: string };
+  tracks: { heading: string; items: Track[] };
+  work: { heading: string; note: string; read: string };
+  experience: { heading: string; items: Job[]; educationHeading: string; education: Job[] };
+  hire: { heading: string; lede: string; items: [string, string][]; cta: string };
   contact: { heading: string; lede: string; email: string };
   project: { back: string; next: string; demo: string; facts: string };
   footer: { role: string; demo: string };
@@ -36,7 +36,7 @@ export const copy: Record<Lang, Copy> = {
       description:
         "Electrical engineer working on power plants, production floors and the software that runs them. Field engineering, software and production planning.",
     },
-    nav: { work: "Work", experience: "Experience", hire: "Work with me", contact: "Contact", theme: "Switch light or dark theme" },
+    nav: { work: "Work", experience: "Experience", hire: "Work with me", contact: "Contact", theme: "Switch light or dark theme", menu: "Menu" },
     hero: {
       eyebrow: "Electrical engineer · Algiers, Algeria",
       title: "Power plants, production floors, and the software that runs them.",
@@ -44,15 +44,16 @@ export const copy: Record<Lang, Copy> = {
         "I'm an electrical engineer with fieldwork on gas turbines and the grid. I build the tools a production plant runs on, and I'm open to field, software and planning roles.",
       cv: "Download CV",
       hire: "Work with me",
+      chart: "Demo plant · three-day schedule",
+      chartLink: "See the scheduling tool",
     },
     stats: [
-      ["MSc", "Electrical engineering, top of my class"],
-      ["Daily", "My scheduling tool plans every section of a cable plant"],
+      ["Top of class", "Bachelor's and Master's in electrical engineering"],
+      ["In daily use", "My scheduling tool plans every section of a cable plant"],
       ["99%", "Bacteria cut in a lab trial of my team's ozone prototype"],
-      ["3", "Languages: Arabic, English, French"],
+      ["250+", "Automated tests behind DafterDZ, my ERP for small businesses"],
     ],
     tracks: {
-      eyebrow: "What I do",
       heading: "Three ways I can help",
       items: [
         {
@@ -82,13 +83,11 @@ export const copy: Record<Lang, Copy> = {
       ],
     },
     work: {
-      eyebrow: "Selected work",
       heading: "Projects",
       note: "Visuals for the plant tools use a synthetic demo plant built on public ISA-95 and IEC standards, not real plant data.",
       read: "Read the case study",
     },
     experience: {
-      eyebrow: "Experience",
       heading: "Where I've worked",
       items: [
         {
@@ -97,12 +96,14 @@ export const copy: Record<Lang, Copy> = {
           where: "Cable manufacturer · Ain Defla",
           body:
             "Daily planning across several production sections. Material availability checks with the production teams. Built the planning tools shown above.",
+          current: true,
         },
         {
           when: "2026 – now",
           role: "Founder, DafterDZ",
           where: "Own project · Algeria",
           body: "An ERP for Algerian small businesses, built on ERPNext: three apps, a vendor hub, over 250 automated tests.",
+          current: true,
         },
         {
           when: "2024",
@@ -129,6 +130,9 @@ export const copy: Record<Lang, Copy> = {
           where: "Cable manufacturer · Ain Defla",
           body: "Line maintenance and early equipment-optimisation work on the cable-making floor.",
         },
+      ],
+      educationHeading: "Education",
+      education: [
         {
           when: "2020 – 2025",
           role: "MSc Electrical Engineering, power systems",
@@ -138,7 +142,6 @@ export const copy: Record<Lang, Copy> = {
       ],
     },
     hire: {
-      eyebrow: "Work with me",
       heading: "Small, solid tools for businesses that run on spreadsheets",
       lede: "I take the spreadsheet or macro your team depends on and turn it into something that doesn't break.",
       items: [
@@ -164,7 +167,7 @@ export const copy: Record<Lang, Copy> = {
       description:
         "Ingénieur électricien : centrales, ateliers de production et les logiciels qui les font tourner. Ingénierie terrain, logiciel et planification de production.",
     },
-    nav: { work: "Projets", experience: "Parcours", hire: "Travailler ensemble", contact: "Contact", theme: "Passer en thème clair ou sombre" },
+    nav: { work: "Projets", experience: "Parcours", hire: "Travailler ensemble", contact: "Contact", theme: "Passer en thème clair ou sombre", menu: "Menu" },
     hero: {
       eyebrow: "Ingénieur électricien · Alger, Algérie",
       title: "Centrales, ateliers de production, et les logiciels qui les font tourner.",
@@ -172,15 +175,16 @@ export const copy: Record<Lang, Copy> = {
         "Ingénieur électricien avec une expérience terrain sur turbines à gaz et réseau électrique. Je construis les outils sur lesquels tourne une usine de production, et je suis ouvert aux postes terrain, logiciel et planification.",
       cv: "CV (en anglais)",
       hire: "Travailler ensemble",
+      chart: "Usine de démonstration · planning sur trois jours",
+      chartLink: "Voir l'outil d'ordonnancement",
     },
     stats: [
-      ["Master", "Électrotechnique, major de promotion"],
-      ["Chaque jour", "Mon outil d'ordonnancement planifie chaque section d'une câblerie"],
+      ["Major de promotion", "Licence et master en électrotechnique"],
+      ["Utilisé chaque jour", "Mon outil d'ordonnancement planifie chaque section d'une câblerie"],
       ["99 %", "Bactéries éliminées lors d'un essai du prototype à ozone de mon équipe"],
-      ["3", "Langues : arabe, anglais, français"],
+      ["250+", "Tests automatiques derrière DafterDZ, mon ERP pour petites entreprises"],
     ],
     tracks: {
-      eyebrow: "Mon métier",
       heading: "Trois façons d'aider",
       items: [
         {
@@ -210,13 +214,11 @@ export const copy: Record<Lang, Copy> = {
       ],
     },
     work: {
-      eyebrow: "Projets choisis",
       heading: "Projets",
       note: "Les visuels des outils d'usine viennent d'une usine de démonstration fictive, construite sur les normes publiques ISA-95 et CEI, et non de données réelles.",
       read: "Lire l'étude de cas",
     },
     experience: {
-      eyebrow: "Parcours",
       heading: "Où j'ai travaillé",
       items: [
         {
@@ -225,12 +227,14 @@ export const copy: Record<Lang, Copy> = {
           where: "Fabricant de câbles · Aïn Defla",
           body:
             "Planification quotidienne sur plusieurs sections de production. Vérification de la disponibilité des matières avec les équipes de production. Conception des outils de planification présentés plus haut.",
+          current: true,
         },
         {
           when: "2026 – aujourd'hui",
           role: "Fondateur, DafterDZ",
           where: "Projet personnel · Algérie",
           body: "Un ERP pour les petites entreprises algériennes, construit sur ERPNext : trois applications, un hub éditeur, plus de 250 tests automatiques.",
+          current: true,
         },
         {
           when: "2024",
@@ -257,6 +261,9 @@ export const copy: Record<Lang, Copy> = {
           where: "Fabricant de câbles · Aïn Defla",
           body: "Maintenance des lignes et premiers travaux d'optimisation des équipements en atelier.",
         },
+      ],
+      educationHeading: "Formation",
+      education: [
         {
           when: "2020 – 2025",
           role: "Master en électrotechnique, réseaux électriques",
@@ -266,7 +273,6 @@ export const copy: Record<Lang, Copy> = {
       ],
     },
     hire: {
-      eyebrow: "Travailler ensemble",
       heading: "De petits outils solides pour les entreprises qui tournent sur des tableurs",
       lede: "Je reprends le tableur ou la macro dont votre équipe dépend et j'en fais quelque chose qui ne casse pas.",
       items: [

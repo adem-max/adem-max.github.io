@@ -4,7 +4,6 @@ import { copy, CV_HREF, EMAIL, LINKEDIN, type Lang } from "../i18n/ui.ts";
 import { projects } from "../content/projects.ts";
 import Figure from "./Figure.astro";
 import Gantt from "./figures/Gantt.astro";
-import OzoneDiagram from "./figures/OzoneDiagram.astro";
 
 interface Props {
   lang: Lang;
@@ -24,71 +23,43 @@ const ICONS = {
 ---
 
 <section class="hero wrap" aria-labelledby="hero-title">
-  <div class="hero-text">
-    <p class="eyebrow">{t.hero.eyebrow}</p>
-    <h1 id="hero-title">{t.hero.title}</h1>
-    <p class="lede">{t.hero.lede}</p>
-    <div class="actions">
-      <a class="btn primary" href={CV_HREF} download>{t.hero.cv}</a>
-      <a class="btn" href="#hire">{t.hero.hire}</a>
-      <a class="btn ghost" href={LINKEDIN} rel="me noopener">LinkedIn</a>
-    </div>
+  <p class="eyebrow">{t.hero.eyebrow}</p>
+  <h1 id="hero-title">{t.hero.title}</h1>
+  <p class="lede">{t.hero.lede}</p>
+  <div class="actions">
+    <a class="btn primary" href={CV_HREF} download>{t.hero.cv}</a>
+    <a class="btn" href="#hire">{t.hero.hire}</a>
+    <a class="btn quiet" href={LINKEDIN} rel="me noopener">LinkedIn</a>
   </div>
-  <div class="hero-visual" aria-hidden="true">
-    <div class="card big">
-      <p class="card-title"><span class="dot"></span>{lang === "en" ? "Demo plant · three-day schedule" : "Usine de démonstration · planning sur trois jours"}</p>
-      <Gantt lang={lang} compact />
-    </div>
-    <div class="card photo">
-      <OzoneDiagram lang={lang} compact />
-    </div>
-  </div>
-</section>
 
-<section class="wrap stats" aria-label={lang === "en" ? "Key facts" : "En bref"}>
-  {
-    t.stats.map(([big, small]) => (
-      <div>
-        <p class="big">{big}</p>
-        <p class="small">{small}</p>
-      </div>
-    ))
-  }
-</section>
+  <!-- The page's one showpiece: the demo plant's schedule, in the frame the case studies use. -->
+  <figure class="window">
+    <figcaption class="window-bar">
+      <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="window-title">{t.hero.chart}</span>
+      <a class="window-link" href={url("scheduler")}>{t.hero.chartLink} <span aria-hidden="true">→</span></a>
+    </figcaption>
+    <div class="window-body">
+      <div class="chart-wide"><Gantt lang={lang} hero /></div>
+      <div class="chart-narrow"><Gantt lang={lang} hero compact /></div>
+    </div>
+  </figure>
 
-<section id="tracks" class="section alt" aria-labelledby="tracks-title">
-  <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow">{t.tracks.eyebrow}</p>
-      <h2 id="tracks-title">{t.tracks.heading}</h2>
-    </div>
-    <div class="tracks">
-      {
-        t.tracks.items.map((track) => (
-          <article class="track">
-            <span class="icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                <path d={ICONS[track.id]} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-            <h3>{track.title}</h3>
-            <p>{track.body}</p>
-            <p class="links">
-              {track.links.map((l) => (
-                <a href={url(l.slug)}>{l.label} →</a>
-              ))}
-            </p>
-          </article>
-        ))
-      }
-    </div>
-  </div>
+  <dl class="proof">
+    {
+      t.stats.map(([big, small]) => (
+        <div>
+          <dt>{big}</dt>
+          <dd>{small}</dd>
+        </div>
+      ))
+    }
+  </dl>
 </section>
 
 <section id="work" class="section" aria-labelledby="work-title">
   <div class="wrap">
     <div class="section-head">
-      <p class="eyebrow">{t.work.eyebrow}</p>
       <h2 id="work-title">{t.work.heading}</h2>
     </div>
     <div class="cards">
@@ -96,12 +67,13 @@ const ICONS = {
         work.map((p) => (
           <a class="card-link" href={url(p.slug)}>
             <article class="pcard">
-              <div class:list={["cover", { photo: !!p.cover, portrait: p.coverFigure === "ozone-diagram" }]}>
-                {p.cover ? (
-                  <img src={p.cover.src} alt={p.cover.alt} loading="lazy" />
-                ) : (
-                  p.coverFigure && <Figure name={p.coverFigure} lang={lang} compact />
+              <div class:list={["cover", { split: !!(p.cover && p.coverFigure), photo: !!p.cover && !p.coverFigure, portrait: p.coverFigure === "ozone-diagram" }]}>
+                {p.coverFigure && (
+                  <div class="cover-figure">
+                    <Figure name={p.coverFigure} lang={lang} compact />
+                  </div>
                 )}
+                {p.cover && <img src={p.cover.src} alt={p.cover.alt} loading="lazy" />}
               </div>
               <div class="pbody">
                 <p class="tags">
@@ -113,7 +85,7 @@ const ICONS = {
                 <p>{p.summary}</p>
                 <p class="foot">
                   <span class="status">{p.status}</span>
-                  <span class="read">{t.work.read} →</span>
+                  <span class="read">{t.work.read} <span class="arrow" aria-hidden="true">→</span></span>
                 </p>
               </div>
             </article>
@@ -126,209 +98,193 @@ const ICONS = {
 </section>
 
 <section id="experience" class="section alt" aria-labelledby="exp-title">
-  <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow">{t.experience.eyebrow}</p>
+  <div class="wrap split">
+    <div class="split-head">
       <h2 id="exp-title">{t.experience.heading}</h2>
+      <a class="btn" href={CV_HREF} download>{t.hero.cv}</a>
     </div>
-    <ol class="timeline">
-      {
-        t.experience.items.map((job) => (
-          <li>
-            <span class="when">{job.when}</span>
-            <div>
-              <h3>{job.role}</h3>
-              <p class="where">{job.where}</p>
-              <p>{job.body}</p>
-            </div>
-          </li>
-        ))
-      }
-    </ol>
+    <div>
+      <ol class="timeline">
+        {
+          t.experience.items.map((job) => (
+            <li>
+              <span class:list={["when", { current: job.current }]}>{job.when}</span>
+              <div>
+                <h3>{job.role}</h3>
+                <p class="where">{job.where}</p>
+                <p>{job.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <h3 class="sub">{t.experience.educationHeading}</h3>
+      <ol class="timeline">
+        {
+          t.experience.education.map((job) => (
+            <li>
+              <span class="when">{job.when}</span>
+              <div>
+                <h3>{job.role}</h3>
+                <p class="where">{job.where}</p>
+                <p>{job.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
   </div>
 </section>
 
-<section id="hire" class="section" aria-labelledby="hire-title">
+<section id="tracks" class="section" aria-labelledby="tracks-title">
   <div class="wrap">
     <div class="section-head">
-      <p class="eyebrow">{t.hire.eyebrow}</p>
+      <h2 id="tracks-title">{t.tracks.heading}</h2>
+    </div>
+    <div class="tracks">
+      {
+        t.tracks.items.map((track) => (
+          <article class="track">
+            <svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path d={ICONS[track.id]} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3>{track.title}</h3>
+            <p>{track.body}</p>
+            <p class="links">
+              {track.links.map((l) => (
+                <a href={url(l.slug)}>{l.label} <span aria-hidden="true">→</span></a>
+              ))}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<section id="hire" class="section alt" aria-labelledby="hire-title">
+  <div class="wrap split roomy">
+    <div class="split-head">
       <h2 id="hire-title">{t.hire.heading}</h2>
       <p>{t.hire.lede}</p>
+      <a class="btn primary" href={`mailto:${EMAIL}`}>{t.hire.cta}</a>
     </div>
-    <div class="services">
+    <dl class="services">
       {
         t.hire.items.map(([title, body]) => (
           <div class="service">
-            <h3>{title}</h3>
-            <p>{body}</p>
+            <dt>{title}</dt>
+            <dd>{body}</dd>
           </div>
         ))
       }
-    </div>
-    <p class="hire-cta"><a class="btn primary" href={`mailto:${EMAIL}`}>{t.hire.cta}</a></p>
-  </div>
-</section>
-
-<section id="contact" class="band" aria-labelledby="contact-title">
-  <div class="wrap band-inner">
-    <div>
-      <h2 id="contact-title">{t.contact.heading}</h2>
-      <p>{t.contact.lede}</p>
-    </div>
-    <div class="band-actions">
-      <a class="btn primary" href={`mailto:${EMAIL}`}>{t.contact.email}</a>
-      <a class="btn on-band" href={LINKEDIN} rel="me noopener">LinkedIn</a>
-    </div>
+    </dl>
   </div>
 </section>
 
 <style>
+  /* Hero: headline across the page, then the schedule as the one showpiece. */
   .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: clamp(32px, 5vw, 72px);
-    align-items: center;
-    padding-block: clamp(48px, 8vw, 104px) clamp(40px, 6vw, 72px);
+    padding-block: clamp(40px, 7vw, 84px) clamp(48px, 6vw, 72px);
   }
   .hero h1 {
-    font-size: clamp(36px, 5.2vw, 60px);
+    font-size: clamp(34px, 5vw, 56px);
     font-weight: 700;
-    letter-spacing: -0.025em;
-    margin-top: 16px;
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    margin-top: 14px;
   }
   .lede {
-    font-size: clamp(17px, 1.6vw, 20px);
+    font-size: clamp(17px, 1.6vw, 19px);
     color: var(--muted);
-    max-width: 52ch;
-    margin: 22px 0 32px;
+    max-width: 64ch;
+    margin: 20px 0 28px;
+    text-wrap: pretty;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
   }
-  .btn.ghost {
-    border-color: var(--rule);
-  }
-  .hero-visual {
-    position: relative;
-    padding: 0 0 72px 0;
-  }
-  .card.big {
-    width: 76%;
-  }
-  .card {
+
+  .window {
+    margin: clamp(36px, 5vw, 56px) 0 0;
     background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 14px;
-    box-shadow: var(--shadow);
-  }
-  .card.big {
-    padding: 22px 20px;
-  }
-  .card-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-  }
-  .card.photo {
-    position: absolute;
-    width: 34%;
-    right: -8px;
-    bottom: 0;
-    padding: 6px;
+    box-shadow: var(--shadow-lg);
     overflow: hidden;
   }
-  .card.photo {
-    padding: 14px 10px 6px;
-    background: var(--surface);
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 18px;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .lights {
+    display: flex;
+    gap: 6px;
+  }
+  .lights i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--muted) 30%, transparent);
+  }
+  .window-link {
+    margin-left: auto;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .window-link:hover {
+    color: var(--accent-text);
+  }
+  .window-body {
+    padding: 10px 22px 20px;
+  }
+  .chart-narrow {
+    display: none;
   }
 
-  .stats {
+  .proof {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    border-top: 1px solid var(--rule);
-    padding-block: 28px 56px;
-    gap: 24px;
+    margin: clamp(32px, 4vw, 44px) 0 0;
   }
-  .stats p {
-    margin: 0;
+  .proof > div {
+    padding: 2px 24px;
+    border-left: 1px solid var(--rule);
   }
-  .big {
-    font-size: 30px;
+  .proof > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .proof dt {
+    font-size: 22px;
     font-weight: 700;
-    color: var(--ink);
+    line-height: 1.2;
     letter-spacing: -0.02em;
-  }
-  .big::after {
-    content: "";
-    display: block;
-    width: 28px;
-    height: 3px;
-    background: var(--accent);
-    margin-top: 6px;
-    border-radius: 2px;
-  }
-  .small {
-    color: var(--muted);
-    font-size: 15px;
-    margin-top: 8px !important;
-    line-height: 1.45;
-  }
-
-  .tracks {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-  }
-  .track {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 14px;
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-  }
-  .icon {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    color: var(--accent-text);
-    margin-bottom: 18px;
-  }
-  .track h3 {
-    font-size: 21px;
-    margin-bottom: 10px;
-  }
-  .track p {
-    margin: 0 0 16px;
-    color: var(--muted);
-  }
-  .links {
-    margin-top: auto !important;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 18px;
-    font-weight: 600;
-    font-size: 15px;
-  }
-  .links a {
     color: var(--ink);
   }
+  .proof dd {
+    margin: 6px 0 0;
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
 
+  /* Projects */
+  .hero + .section {
+    padding-top: 0;
+  }
   .cards {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -338,6 +294,7 @@ const ICONS = {
     text-decoration: none;
     color: inherit;
     display: block;
+    border-radius: 14px;
   }
   .pcard {
     height: 100%;
@@ -354,11 +311,20 @@ const ICONS = {
     box-shadow: var(--shadow);
     border-color: color-mix(in srgb, var(--ink) 25%, var(--rule));
   }
+  .arrow {
+    display: inline-block;
+    transition: transform 0.18s;
+  }
+  .card-link:hover .arrow {
+    transform: translateX(3px);
+  }
   @media (prefers-reduced-motion: reduce) {
-    .pcard {
+    .pcard,
+    .arrow {
       transition: none;
     }
-    .card-link:hover .pcard {
+    .card-link:hover .pcard,
+    .card-link:hover .arrow {
       transform: none;
     }
   }
@@ -371,28 +337,45 @@ const ICONS = {
     overflow: hidden;
     border-bottom: 1px solid var(--rule);
   }
-  .cover > :global(*) {
+  .cover-figure {
     width: 100%;
+    min-height: 0;
   }
-  .cover.photo {
-    padding: 0;
+  .cover.portrait .cover-figure {
+    height: 100%;
+    display: grid;
+    place-items: center;
   }
-  .cover.portrait {
-    padding: 14px;
-  }
-  .cover.portrait > :global(*) {
-    width: auto;
+  .cover.portrait .cover-figure > :global(*) {
     height: 100%;
   }
   .cover.portrait :global(svg) {
     height: 100%;
     width: auto;
+    margin-inline: auto;
   }
+  .cover.portrait {
+    padding: 14px;
+  }
+  /* Drawing and photo side by side: how it works, and the unit as built. */
+  .cover.split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    place-items: stretch;
+    padding: 0;
+  }
+  .cover.split .cover-figure {
+    padding: 14px;
+  }
+  .cover.split img,
   .cover.photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center 60%;
+  }
+  .cover.photo {
+    padding: 0;
   }
   .pbody {
     padding: 22px 26px 24px;
@@ -431,31 +414,67 @@ const ICONS = {
   .note {
     color: var(--muted);
     font-size: 14px;
-    margin-top: 20px;
+    margin: 20px 0 0;
+  }
+
+  /* Two-column sections: the heading stays in view while the list scrolls. */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 64px);
+    align-items: start;
+  }
+  .split.roomy {
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  }
+  .split-head {
+    position: sticky;
+    top: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .split-head h2 {
+    font-size: clamp(26px, 3.2vw, 34px);
+    font-weight: 700;
+  }
+  .split-head p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .split-head .btn {
+    margin-top: 8px;
   }
 
   .timeline {
     list-style: none;
     margin: 0;
     padding: 0;
-    max-width: 880px;
   }
   .timeline li {
     display: grid;
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: 28px;
-    padding: 22px 0;
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 24px;
+    padding: 20px 0;
     border-bottom: 1px solid var(--rule);
   }
   .timeline li:first-child {
     padding-top: 0;
   }
+  .timeline li:last-child {
+    border-bottom: 0;
+  }
   .when {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--accent-text);
-    padding-top: 2px;
+    color: var(--muted);
+    padding-top: 3px;
     font-variant-numeric: tabular-nums;
+  }
+  /* Roles still running are the only ones marked. */
+  .when.current {
+    color: var(--accent-text);
   }
   .timeline h3 {
     font-size: 18px;
@@ -468,77 +487,133 @@ const ICONS = {
     color: var(--muted);
     font-size: 15px;
   }
-
-  .services {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
-  }
-  .service {
-    border-top: 3px solid var(--accent);
-    padding-top: 16px;
-  }
-  .service h3 {
-    font-size: 17px;
-  }
-  .service p {
-    margin: 6px 0 0;
+  .sub {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
     color: var(--muted);
+    margin: 12px 0 20px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* Three tracks, as plain columns */
+  .tracks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .track {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 32px;
+    border-left: 1px solid var(--rule);
+  }
+  .track:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .track:last-child {
+    padding-right: 0;
+  }
+  .icon {
+    color: var(--accent-text);
+    margin-bottom: 14px;
+  }
+  .track h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .track p {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .links {
+    margin: auto 0 0 !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-weight: 600;
     font-size: 15px;
   }
-  .hire-cta {
-    margin: 32px 0 0;
+  .links a {
+    color: var(--ink);
+  }
+  .links a:hover {
+    color: var(--accent-text);
   }
 
-  .band {
-    background: var(--band);
-    color: var(--on-band);
-    padding-block: clamp(48px, 7vw, 80px);
+  /* Services */
+  .services {
+    margin: 0;
+    border-top: 3px solid var(--accent);
   }
-  .band-inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
+  .service {
+    display: grid;
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    gap: 4px 24px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rule);
   }
-  .band h2 {
-    color: var(--on-band);
-    font-size: clamp(28px, 3.6vw, 40px);
+  .service dt {
+    font-weight: 600;
+    color: var(--ink);
   }
-  .band p {
-    margin: 8px 0 0;
-    opacity: 0.85;
-  }
-  .band-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .btn.on-band {
-    border-color: color-mix(in srgb, var(--on-band) 45%, transparent);
-    color: var(--on-band);
-  }
-  .btn.on-band:hover {
-    background: var(--on-band);
-    color: var(--band);
+  .service dd {
+    margin: 0;
+    color: var(--muted);
   }
 
   @media (max-width: 960px) {
-    .hero {
+    .split,
+    .split.roomy {
       grid-template-columns: 1fr;
     }
-    .hero-visual {
-      max-width: 560px;
+    .split-head {
+      position: static;
     }
-    .services {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Stacked, the services come before the button that asks about them. */
+    .split.roomy {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+    .split.roomy .split-head {
+      display: contents;
+    }
+    .split.roomy .services {
+      margin-top: 14px;
+    }
+    .split.roomy .btn {
+      order: 1;
+      align-self: flex-start;
+      margin-top: 14px;
     }
     .tracks {
       grid-template-columns: 1fr;
     }
-    .stats {
+    .track,
+    .track:first-child,
+    .track:last-child {
+      padding: 24px 0;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+    .track:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+    .track:last-child {
+      padding-bottom: 0;
+    }
+    .proof {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 28px;
+    }
+    .proof > div:nth-child(odd) {
+      padding-left: 0;
+      border-left: 0;
     }
   }
   @media (max-width: 680px) {
@@ -549,11 +624,27 @@ const ICONS = {
       grid-template-columns: 1fr;
       gap: 4px;
     }
-    .services {
+    .service {
       grid-template-columns: 1fr;
     }
-    .card.photo {
-      right: 0;
+    .chart-wide {
+      display: none;
+    }
+    .chart-narrow {
+      display: block;
+    }
+    .window-body {
+      padding: 14px;
+    }
+    .window-bar {
+      padding-inline: 14px;
+    }
+    .window-title {
+      display: none;
+    }
+    .proof > div {
+      padding-right: 0;
+      padding-left: 16px;
     }
   }
 </style>
